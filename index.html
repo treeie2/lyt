@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+
 <title>Daily Stock Signals</title>
 <style>
 :root{--bg:#00041a;--bg2:#000c2a;--hover:#001a4d;--text:#e0f2ff;--text2:#a0c4ff;--cyan:#00ffff;--yellow:#f8e71c;--up:#00ff88;--down:#ff0077;--border:rgba(0,255,255,.3)}
@@ -76,20 +76,18 @@ var currentSignals = {}; // {sig: [{code, close}]}
 SIGS.forEach(function(s){ activeSigs[s] = true; });
 
 async function refresh(){
-  try {
-    // Try gzip compressed first
-    var resp = await fetch('daily_signals.json.gz');
-    var buf = await resp.arrayBuffer();
-    var raw = pako.inflate(new Uint8Array(buf), {to:'string'});
-    DATA = JSON.parse(raw);
-  } catch(e) {
-    // Fallback to plain JSON
-    var resp = await fetch('daily_signals.json');
-    DATA = await resp.json();
+  try{
+    var resp=await fetch('daily_signals.json');
+    if(!resp.ok) throw new Error('HTTP '+resp.status);
+    DATA=await resp.json();
+  }catch(e){
+    document.getElementById('tbl').innerHTML='<tr><td colspan=3 style=\"color:var(--down);padding:40px\">Failed to load data: '+e.message+'<br><br>Run: cd treeie_stock &amp;&amp; python deploy_data.py</td></tr>';
+    return;
   }
-  document.getElementById('dp').min = DATA.dates[0];
-  document.getElementById('dp').max = DATA.dates[DATA.dates.length-1];
-  document.getElementById('dp').value = DATA.dates[DATA.dates.length-1];
+  if(!DATA.dates||DATA.dates.length===0) return;
+  document.getElementById('dp').min=DATA.dates[0];
+  document.getElementById('dp').max=DATA.dates[DATA.dates.length-1];
+  document.getElementById('dp').value=DATA.dates[DATA.dates.length-1];
   render();
 }
 
