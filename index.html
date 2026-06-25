@@ -169,7 +169,7 @@ function render(){
       + '<td>' + e.close.toFixed(2) + '</td>'
       + '<td>' + tags + '</td></tr>';
   });
-  document.getElementById('tbl').innerHTML = rows || '<tr><td colspan=3 style="text-align:center;color:var(--text2);padding:40px">No stocks match all selected signals</td></tr>';
+  document.getElementById('tbl').innerHTML = rows || '<tr><td colspan=4 style="text-align:center;color:var(--text2);padding:40px">No stocks match all selected signals</td></tr>';
 }
 
 function toggleSig(sig){
