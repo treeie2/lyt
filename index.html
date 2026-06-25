@@ -1,169 +1,178 @@
-<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><title>选股结果</title>
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Stock Signals</title>
 <style>
-:root{--bg-primary:#00041a;--bg-secondary:#000c2a;--bg-hover:#001a4d;--text-primary:#e0f2ff;--text-secondary:#a0c4ff;--accent-cyan:#00ffff;--score-yellow:#f8e71c;--up-green:#00ff88;--down-pink:#ff0077;--border-neon:rgba(0,255,255,.3)}
-*{margin:0;padding:0;box-sizing:border-box}body{background-color:var(--bg-primary);background-image:linear-gradient(135deg,#00041a,#000c3a);color:var(--text-primary);font-family:'Segoe UI','Microsoft YaHei',sans-serif;padding:24px}
-.header-container{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;border-bottom:2px solid var(--border-neon);padding-bottom:16px}
-h1{color:var(--accent-cyan);text-transform:uppercase;letter-spacing:2px;text-shadow:0 0 10px rgba(0,255,255,.7)}
-.sub-info{display:flex;gap:16px;color:var(--text-secondary);font-size:14px}
-.info-tag{background:rgba(160,196,255,.1);padding:4px 8px;border-radius:4px;border:1px solid rgba(160,196,255,.2)}
-.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;padding:10px 14px;background:var(--bg-secondary);border-radius:8px;border:1px solid rgba(0,255,255,.15)}
-.lg{font-size:11px;padding:3px 8px;border-radius:4px;font-weight:600}
-.l-qd{border:1px solid #ff9800;color:#ff9800}.l-qc{border:1px solid #e91e63;color:#e91e63}.l-tp{border:1px solid #2196f3;color:#2196f3}.l-bf{border:1px solid #f44336;color:#f44336}.l-zq{border:1px solid #4caf50;color:#4caf50}.l-qz{border:1px solid #9c27b0;color:#9c27b0}.l-zs{border:1px solid #ffd700;color:#ffd700}.l-ja{border:1px solid var(--accent-cyan);color:var(--accent-cyan)}.l-qg{border:1px solid var(--down-pink);color:var(--down-pink)}
-.table-container{background-color:var(--bg-secondary);border-radius:12px;overflow:hidden;border:1px solid var(--border-neon);box-shadow:0 0 20px rgba(0,255,255,.1)}
-table{width:100%;border-collapse:collapse;font-size:14px}
-th{background-color:rgba(0,12,42,.8);padding:12px 16px;text-align:left;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border-neon);position:sticky;top:0}
-td{padding:10px 16px;border-bottom:1px solid rgba(0,255,255,.1);vertical-align:middle}
-tbody tr:last-child td{border-bottom:none}tr:hover{background-color:var(--bg-hover);box-shadow:inset 0 0 10px rgba(0,255,255,.1)}
-td:first-child,td:nth-child(2){font-family:'Consolas','Monaco',monospace;color:var(--accent-cyan)}
-.up{color:var(--up-green);text-shadow:0 0 5px rgba(0,255,136,.5)}.down{color:var(--down-pink);text-shadow:0 0 5px rgba(255,0,119,.5)}
-.score-badge{display:inline-block;background:rgba(248,231,28,.15);color:var(--score-yellow);padding:4px 10px;border-radius:16px;font-weight:bold;border:1px solid rgba(248,231,28,.3);text-shadow:0 0 5px rgba(248,231,28,.5)}
-.signal-dates{font-size:12px;color:var(--text-secondary);max-width:400px;white-space:normal;line-height:1.6}
-.chart-link{display:inline-block;background:transparent;color:var(--accent-cyan);text-decoration:none;padding:6px 16px;border-radius:4px;border:1px solid var(--accent-cyan);transition:all .3s;font-weight:bold;font-size:13px}
-.chart-link:hover{background:var(--accent-cyan);color:var(--bg-primary);box-shadow:0 0 15px rgba(0,255,255,.6);text-decoration:none}
-.btn-refresh{background:transparent;color:var(--accent-cyan);border:1px solid var(--accent-cyan);padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;transition:all .3s}.btn-refresh:hover{background:var(--accent-cyan);color:var(--bg-primary)}
-.status-text{font-size:11px;color:var(--text-secondary)}
-</style></head><body>
-<div class="header-container">
-  <div><h1>Stock Screener</h1><div class="sub-info">
-    <span class="info-tag">12 stocks</span>
-    <span class="info-tag">Score &gt;= 50</span>
-    <span class="info-tag" id="status">Data: 2026-06-25</span>
-  </div></div>
-  <div style="text-align:right">
-    <input type="date" id="datePicker" value="2026-06-25" onchange="filterDate()" oninput="filterDate()" style="background:var(--bg-secondary);color:var(--accent-cyan);border:1px solid var(--accent-cyan);padding:6px 10px;border-radius:6px;font-size:13px;margin-right:8px;outline:none">
-    <button class="btn-refresh" onclick="refreshQuotes()" id="btnR" style="margin-top:4px">Refresh</button>
+:root{--bg:#00041a;--bg2:#000c2a;--hover:#001a4d;--text:#e0f2ff;--text2:#a0c4ff;--cyan:#00ffff;--yellow:#f8e71c;--up:#00ff88;--down:#ff0077;--border:rgba(0,255,255,.3)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Microsoft YaHei',sans-serif;padding:20px;min-height:100vh}
+.header{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:2px solid var(--border);margin-bottom:20px;flex-wrap:wrap;gap:12px}
+h1{color:var(--cyan);text-shadow:0 0 10px rgba(0,255,255,.5);letter-spacing:2px;font-size:22px}
+.ctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input[type=date]{background:var(--bg2);color:var(--cyan);border:1px solid var(--cyan);padding:8px 12px;border-radius:6px;font-size:14px;outline:none}
+.btn{background:transparent;color:var(--cyan);border:1px solid var(--cyan);padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;transition:.3s}
+.btn:hover{background:var(--cyan);color:var(--bg)}
+.info{display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap}
+.tag{background:rgba(160,196,255,.1);padding:6px 12px;border-radius:6px;font-size:13px;color:var(--text2);border:1px solid rgba(160,196,255,.2)}
+.signal-panel{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.sig-btn{padding:8px 14px;border-radius:8px;cursor:pointer;border:1px solid;font-size:13px;text-align:center;transition:.2s;opacity:.4;min-width:72px;user-select:none}
+.sig-btn.on{opacity:1;box-shadow:0 0 12px}
+.sig-btn:hover{opacity:.8}
+.sig-count{font-size:22px;font-weight:bold;display:block;line-height:1.2}
+.sig-label{font-size:11px;display:block}
+.sort-bar{display:flex;gap:8px;align-items:center;margin-bottom:14px;font-size:12px;color:var(--text2)}
+.sort-bar .btn{font-size:11px;padding:4px 10px}
+.table-wrap{background:var(--bg2);border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;color:var(--text2);background:rgba(0,12,42,.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1;cursor:pointer}
+th:hover{color:var(--cyan)}
+td{padding:8px 14px;border-bottom:1px solid rgba(0,255,255,.08)}
+tr:hover{background:var(--hover)}
+.sig-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;margin:1px 2px;font-weight:600;border:1px solid}
+.code-link{font-family:Consolas,Monaco;color:var(--cyan);text-decoration:none}
+.code-link:hover{text-decoration:underline}
+.up{color:var(--up);text-shadow:0 0 5px rgba(0,255,136,.3)}
+.down{color:var(--down)}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <h1>Daily Stock Signals</h1>
+    <div class="info">
+      <span class="tag" id="dateInfo">--</span>
+      <span class="tag" id="totalInfo">--</span>
+      <span class="tag" id="filterInfo">All signals</span>
+    </div>
+  </div>
+  <div class="ctrl">
+    <input type="date" id="dp" onchange="render()">
+    <button class="btn" onclick="refresh()">Refresh</button>
+    <button class="btn" id="sortBtn" onclick="toggleSort()">Price ↓</button>
   </div>
 </div>
-<div class="legend">
-  <span class="lg l-qd">启动(量托)</span><span class="lg l-qc">抢筹(多方炮)</span><span class="lg l-tp">突破(出水芙蓉)</span><span class="lg l-bf">爆发(放量突破)</span><span class="lg l-zq">转强(月价托)</span><span class="lg l-qz">起涨(中线底托)</span><span class="lg l-zs">主升(金蜘蛛)</span><span class="lg l-ja">加速</span><span class="lg l-qg">强攻</span>
+<div class="signal-panel" id="sigPanel"></div>
+<div class="sort-bar">
+  Click signals above to filter &mdash; only stocks matching ALL selected signals shown
 </div>
-<div class="table-container">
-<table><thead><tr>
-  <th>Code</th><th>Name</th><th>Close</th><th>Mo%</th><th>Score</th><th>Signal Dates</th><th>Chart</th>
-</tr></thead><tbody id="tbl">
-<tr>
-      <td>600719</td><td>大连热电</td><td>8.47</td>
-      <td class="down">-11.7%</td>
-      <td><span class="score-badge">120</span></td>
-      <td class="signal-dates">启动: 2026-04-21, 2026-06-24 | 爆发: 2026-05-06, 2026-06-23 | 转强: 2026-04-16, 2026-06-24 | 主升: 2026-06-23, 2026-06-24 | </td>
-      <td><a class="chart-link" href="chart_01_600719.html">K</a></td>
-    </tr><tr>
-      <td>002452</td><td>长高电气</td><td>12.12</td>
-      <td class="down">-1.7%</td>
-      <td><span class="score-badge">120</span></td>
-      <td class="signal-dates">启动: 2026-03-02, 2026-06-24 | 抢筹: 2026-03-02, 2026-06-24 | 爆发: 2026-02-04, 2026-06-24 | 主升: 2026-06-04, 2026-06-05 | </td>
-      <td><a class="chart-link" href="chart_02_002452.html">K</a></td>
-    </tr><tr>
-      <td>002861</td><td>瀛通通讯</td><td>21.25</td>
-      <td class="up">+16.5%</td>
-      <td><span class="score-badge">100</span></td>
-      <td class="signal-dates">转强: 2026-04-14, 2026-06-18 | 主升: 2026-06-23, 2026-06-24 | </td>
-      <td><a class="chart-link" href="chart_03_002861.html">K</a></td>
-    </tr><tr>
-      <td>000925</td><td>众合科技</td><td>9.09</td>
-      <td class="up">+16.7%</td>
-      <td><span class="score-badge">100</span></td>
-      <td class="signal-dates">启动: 2026-06-10, 2026-06-24 | 抢筹: 2025-07-21, 2026-06-24 | 爆发: 2026-05-12, 2026-06-24 | </td>
-      <td><a class="chart-link" href="chart_04_000925.html">K</a></td>
-    </tr><tr>
-      <td>688689</td><td>银河微电</td><td>46.82</td>
-      <td class="up">+8.1%</td>
-      <td><span class="score-badge">100</span></td>
-      <td class="signal-dates">转强: 2026-02-27, 2026-04-09 | 主升: 2026-06-10, 2026-06-11 | </td>
-      <td><a class="chart-link" href="chart_05_688689.html">K</a></td>
-    </tr><tr>
-      <td>301265</td><td>华新科技</td><td>31.84</td>
-      <td class="up">+9.0%</td>
-      <td><span class="score-badge">100</span></td>
-      <td class="signal-dates">启动: 2026-05-26, 2026-06-25 | 主升: 2026-06-24, 2026-06-25 | </td>
-      <td><a class="chart-link" href="chart_06_301265.html">K</a></td>
-    </tr><tr>
-      <td>002580</td><td>圣阳股份</td><td>25.51</td>
-      <td class="up">+10.8%</td>
-      <td><span class="score-badge">100</span></td>
-      <td class="signal-dates">启动: 2026-03-02, 2026-06-24 | 爆发: 2026-03-25, 2026-06-23 | 主升: 2026-05-25, 2026-05-26 | </td>
-      <td><a class="chart-link" href="chart_07_002580.html">K</a></td>
-    </tr><tr>
-      <td>603010</td><td>万盛股份</td><td>15.53</td>
-      <td class="up">+1.0%</td>
-      <td><span class="score-badge">100</span></td>
-      <td class="signal-dates">爆发: 2026-01-30, 2026-06-25 | 转强: 2026-04-07, 2026-06-25 | 主升: 2026-06-08, 2026-06-09 | </td>
-      <td><a class="chart-link" href="chart_08_603010.html">K</a></td>
-    </tr><tr>
-      <td>688179</td><td>阿拉丁</td><td>26.65</td>
-      <td class="up">+20.1%</td>
-      <td><span class="score-badge">100</span></td>
-      <td class="signal-dates">转强: 2026-04-09, 2026-06-22 | 主升: 2026-06-08, 2026-06-09 | </td>
-      <td><a class="chart-link" href="chart_09_688179.html">K</a></td>
-    </tr><tr>
-      <td>300966</td><td>共同药业</td><td>29.3</td>
-      <td class="up">+7.1%</td>
-      <td><span class="score-badge">100</span></td>
-      <td class="signal-dates">转强: 2026-03-31, 2026-06-18 | 主升: 2026-06-24, 2026-06-25 | </td>
-      <td><a class="chart-link" href="chart_10_300966.html">K</a></td>
-    </tr><tr>
-      <td>300540</td><td>蜀道装备</td><td>25.42</td>
-      <td class="down">-5.4%</td>
-      <td><span class="score-badge">90</span></td>
-      <td class="signal-dates">主升: 2026-05-28, 2026-05-29 | </td>
-      <td><a class="chart-link" href="chart_11_300540.html">K</a></td>
-    </tr><tr>
-      <td>002876</td><td>三利谱</td><td>35.26</td>
-      <td class="up">+21.4%</td>
-      <td><span class="score-badge">90</span></td>
-      <td class="signal-dates">爆发: 2026-01-21, 2026-06-24 | 主升: 2026-06-23, 2026-06-24 | </td>
-      <td><a class="chart-link" href="chart_12_002876.html">K</a></td>
-    </tr>
-</tbody></table></div>
+<div class="table-wrap"><table><thead><tr>
+  <th onclick="sortBy=0;render()">Code</th>
+  <th onclick="sortBy=1;render()">Close</th>
+  <th>Signals</th>
+</tr></thead><tbody id="tbl"></tbody></table></div>
+
 <script>
-var STOCKS=[{"code": "600719", "name": "大连热电", "close": "8.47", "mchg": "-11.7", "score": 120, "signals": "启动: 2026-04-21, 2026-06-24 | 爆发: 2026-05-06, 2026-06-23 | 转强: 2026-04-16, 2026-06-24 | 主升: 2026-06-23, 2026-06-24 | ", "file": "chart_01_600719.html"}, {"code": "002452", "name": "长高电气", "close": "12.12", "mchg": "-1.7", "score": 120, "signals": "启动: 2026-03-02, 2026-06-24 | 抢筹: 2026-03-02, 2026-06-24 | 爆发: 2026-02-04, 2026-06-24 | 主升: 2026-06-04, 2026-06-05 | ", "file": "chart_02_002452.html"}, {"code": "002861", "name": "瀛通通讯", "close": "21.25", "mchg": "16.5", "score": 100, "signals": "转强: 2026-04-14, 2026-06-18 | 主升: 2026-06-23, 2026-06-24 | ", "file": "chart_03_002861.html"}, {"code": "000925", "name": "众合科技", "close": "9.09", "mchg": "16.7", "score": 100, "signals": "启动: 2026-06-10, 2026-06-24 | 抢筹: 2025-07-21, 2026-06-24 | 爆发: 2026-05-12, 2026-06-24 | ", "file": "chart_04_000925.html"}, {"code": "688689", "name": "银河微电", "close": "46.82", "mchg": "8.1", "score": 100, "signals": "转强: 2026-02-27, 2026-04-09 | 主升: 2026-06-10, 2026-06-11 | ", "file": "chart_05_688689.html"}, {"code": "301265", "name": "华新科技", "close": "31.84", "mchg": "9.0", "score": 100, "signals": "启动: 2026-05-26, 2026-06-25 | 主升: 2026-06-24, 2026-06-25 | ", "file": "chart_06_301265.html"}, {"code": "002580", "name": "圣阳股份", "close": "25.51", "mchg": "10.8", "score": 100, "signals": "启动: 2026-03-02, 2026-06-24 | 爆发: 2026-03-25, 2026-06-23 | 主升: 2026-05-25, 2026-05-26 | ", "file": "chart_07_002580.html"}, {"code": "603010", "name": "万盛股份", "close": "15.53", "mchg": "1.0", "score": 100, "signals": "爆发: 2026-01-30, 2026-06-25 | 转强: 2026-04-07, 2026-06-25 | 主升: 2026-06-08, 2026-06-09 | ", "file": "chart_08_603010.html"}, {"code": "688179", "name": "阿拉丁", "close": "26.65", "mchg": "20.1", "score": 100, "signals": "转强: 2026-04-09, 2026-06-22 | 主升: 2026-06-08, 2026-06-09 | ", "file": "chart_09_688179.html"}, {"code": "300966", "name": "共同药业", "close": "29.3", "mchg": "7.1", "score": 100, "signals": "转强: 2026-03-31, 2026-06-18 | 主升: 2026-06-24, 2026-06-25 | ", "file": "chart_10_300966.html"}, {"code": "300540", "name": "蜀道装备", "close": "25.42", "mchg": "-5.4", "score": 90, "signals": "主升: 2026-05-28, 2026-05-29 | ", "file": "chart_11_300540.html"}, {"code": "002876", "name": "三利谱", "close": "35.26", "mchg": "21.4", "score": 90, "signals": "爆发: 2026-01-21, 2026-06-24 | 主升: 2026-06-23, 2026-06-24 | ", "file": "chart_12_002876.html"}];
-function filterDate(){
-  var target=document.getElementById('datePicker').value;
-  document.getElementById('status').textContent='Date: '+target+' (day only)';
-  STOCKS.forEach(function(s){
-    var parts=s.signals.split(' | ');var filtered=[];var activeCount=0;
-    parts.forEach(function(p){
-      var m=p.match(/^(.+?):\s*([\d\-, ]+)/);if(!m) return;
-      var sigName=m[1].trim();
-      var dates=m[2].match(/\d{4}-\d{2}-\d{2}/g);if(!dates) return;
-      var valid=dates.filter(function(d){return d===target;});
-      if(valid.length>0){filtered.push(sigName+': '+valid.join(', '));activeCount++;}
-    });
-    s._filtered=filtered.join(' | ');s._active=activeCount>0;
+var SIGS=['启动','抢筹','突破','爆发','转强','起涨','主升','加速','强攻'];
+var COLORS=['#ff9800','#e91e63','#2196f3','#f44336','#4caf50','#9c27b0','#ffd700','#00ffff','#ff0077'];
+var activeSigs = {}; // {sigName: true/false}
+var sortBy = 1; // 0=code, 1=close desc
+var sortDesc = true;
+var DATA = null;
+var currentSignals = {}; // {sig: [{code, close}]}
+
+SIGS.forEach(function(s){ activeSigs[s] = true; });
+
+async function refresh(){
+  var resp = await fetch('daily_signals.json?' + Date.now());
+  DATA = await resp.json();
+  document.getElementById('dp').min = DATA.dates[0];
+  document.getElementById('dp').max = DATA.dates[DATA.dates.length-1];
+  document.getElementById('dp').value = DATA.dates[DATA.dates.length-1];
+  render();
+}
+
+function render(){
+  if (!DATA) return refresh();
+  var d = document.getElementById('dp').value;
+  document.getElementById('dateInfo').textContent = 'Date: ' + d;
+  currentSignals = DATA.signals[d] || {};
+
+  // Signal buttons
+  var panel = '';
+  var activeCount = 0;
+  SIGS.forEach(function(sig, i){
+    var entries = currentSignals[sig] || [];
+    var cnt = entries.length;
+    var on = activeSigs[sig];
+    if (on) activeCount++;
+    panel += '<div class="sig-btn ' + (on ? 'on' : '') + '" style="color:'+COLORS[i]+';border-color:'+COLORS[i]+'" onclick="toggleSig(\''+sig+'\')">'
+      + '<span class="sig-count">' + cnt + '</span>'
+      + '<span class="sig-label">' + sig + '</span></div>';
   });
-  renderTable();
-}
-function renderTable(){
-  var rows='';
-  STOCKS.forEach(function(s){
-    var sigText=s._filtered!==undefined?s._filtered:s.signals;
-    var active=s._active!==undefined?s._active:true;
-    if(!active) return;
-    var mc=parseFloat(s.mchg);
-    rows+='<tr><td>'+s.code+'</td><td>'+s.name+'</td><td>'+s.close+'</td><td class="'+(mc>=0?'up':'down')+'">'+(mc>=0?'+':'')+s.mchg+'%</td><td><span class="score-badge">'+s.score+'</span></td><td class="signal-dates">'+sigText+'</td><td><a class="chart-link" href="output/'+s.file+'">K</a></td></tr>';
-  });
-  document.getElementById('tbl').innerHTML=rows;
-}
-function refreshQuotes(){
-  var btn=document.getElementById('btnR');btn.textContent='...';btn.disabled=true;
-  var codes=STOCKS.map(function(s){return s.code;});
-  var qs=codes.map(function(c){return (c[0]=='6'?'sh':'sz')+c;}).join(',');
-  var x=new XMLHttpRequest();
-  x.open('GET','http://qt.gtimg.cn/q='+qs,true);
-  x.onload=function(){
-    var t=x.responseText;
-    STOCKS.forEach(function(s){
-      var pfx=(s.code[0]=='6'?'sh':'sz')+s.code;var idx=t.indexOf(pfx);
-      if(idx<0) return;var seg=t.substring(idx,idx+200);
-      var parts=seg.split('~');if(parts.length<5) return;
-      s.close=parseFloat(parts[3]).toFixed(2);
-      var prev=parseFloat(parts[4]);s.mchg=isNaN(prev)?'0':(s.close/prev-1)*100;
+  document.getElementById('sigPanel').innerHTML = panel;
+
+  // Compute intersection of selected signals
+  var stockMap = {}; // {code: {signals: [], close}}
+  var first = true;
+  SIGS.forEach(function(sig){
+    if (!activeSigs[sig]) return;
+    var codes = {};
+    (currentSignals[sig] || []).forEach(function(e){
+      codes[e.code] = e.close;
     });
-    document.getElementById('status').textContent='Updated: '+new Date().toLocaleTimeString();
-    filterDate();renderTable();btn.textContent='Refresh';btn.disabled=false;
-  };
-  x.onerror=function(){btn.textContent='Retry';btn.disabled=false;};
-  x.send();
+    if (first){
+      for (var c in codes) stockMap[c] = {signals: [sig], close: codes[c]};
+      first = false;
+    } else {
+      var newMap = {};
+      for (var c in stockMap){
+        if (codes[c] !== undefined){
+          var entry = stockMap[c];
+          entry.signals.push(sig);
+          entry.close = Math.min(entry.close, codes[c]); // keep min close across signals
+          newMap[c] = entry;
+        }
+      }
+      stockMap = newMap;
+    }
+  });
+
+  var codes = Object.keys(stockMap);
+  document.getElementById('filterInfo').textContent = activeCount + '/' + SIGS.length + ' signals active';
+  document.getElementById('totalInfo').textContent = codes.length + ' stocks match';
+
+  // Sort
+  codes.sort(function(a, b){
+    var va = sortBy === 0 ? a : (stockMap[a].close || 0);
+    var vb = sortBy === 0 ? b : (stockMap[b].close || 0);
+    return sortDesc ? (vb - va) : (va - vb);
+  });
+
+  var rows = '';
+  codes.forEach(function(c){
+    var e = stockMap[c];
+    var tags = e.signals.map(function(s){
+      var i = SIGS.indexOf(s);
+      return '<span class="sig-tag" style="color:'+COLORS[i]+';border-color:'+COLORS[i]+'">'+s+'</span>';
+    }).join(' ');
+    rows += '<tr>'
+      + '<td><span class="code-link">' + c + '</span></td>'
+      + '<td>' + e.close.toFixed(2) + '</td>'
+      + '<td>' + tags + '</td></tr>';
+  });
+  document.getElementById('tbl').innerHTML = rows || '<tr><td colspan=3 style="text-align:center;color:var(--text2);padding:40px">No stocks match all selected signals</td></tr>';
 }
-filterDate();
-</script></body></html>
+
+function toggleSig(sig){
+  activeSigs[sig] = !activeSigs[sig];
+  render();
+}
+
+function toggleSort(){
+  sortDesc = !sortDesc;
+  document.getElementById('sortBtn').textContent = 'Price ' + (sortDesc ? '↓' : '↑');
+  render();
+}
+
+// Init
+(function(){
+  var p = document.getElementById('dp');
+  var urlP = new URLSearchParams(window.location.search).get('date');
+  if (urlP) p.value = urlP;
+  refresh();
+})();
+</script>
+</body>
+</html>
