@@ -1,191 +1,85 @@
-<!DOCTYPE html>
-<html lang="zh">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Daily Stock Signals</title>
+<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Daily Stock Signals</title>
 <style>
-:root{--bg:#00041a;--bg2:#000c2a;--hover:#001a4d;--text:#e0f2ff;--text2:#a0c4ff;--cyan:#00ffff;--yellow:#f8e71c;--up:#00ff88;--down:#ff0077;--border:rgba(0,255,255,.3)}
+:root{--bg:#00041a;--bg2:#000c2a;--h:#001a4d;--t:#e0f2ff;--t2:#a0c4ff;--c:#00ffff;--y:#f8e71c;--u:#00ff88;--d:#ff0077;--b:rgba(0,255,255,.3)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Segoe UI','Microsoft YaHei',sans-serif;padding:20px;min-height:100vh}
-.header{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:2px solid var(--border);margin-bottom:20px;flex-wrap:wrap;gap:12px}
-h1{color:var(--cyan);text-shadow:0 0 10px rgba(0,255,255,.5);letter-spacing:2px;font-size:22px}
-.ctrl{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-input[type=date]{background:var(--bg2);color:var(--cyan);border:1px solid var(--cyan);padding:8px 12px;border-radius:6px;font-size:14px;outline:none}
-.btn{background:transparent;color:var(--cyan);border:1px solid var(--cyan);padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;transition:.3s}
-.btn:hover{background:var(--cyan);color:var(--bg)}
-.info{display:flex;gap:16px;margin-bottom:14px;flex-wrap:wrap}
-.tag{background:rgba(160,196,255,.1);padding:6px 12px;border-radius:6px;font-size:13px;color:var(--text2);border:1px solid rgba(160,196,255,.2)}
-.signal-panel{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.sig-btn{padding:8px 10px;border-radius:8px;cursor:pointer;border:1px solid;font-size:13px;text-align:center;transition:.2s;opacity:.4;width:85px;flex:0 0 85px;user-select:none}
-.sig-btn.on{opacity:1;box-shadow:0 0 12px}
-.sig-btn:hover{opacity:.8}
-.sig-count{font-size:22px;font-weight:bold;display:block;line-height:1.2}
-.sig-label{font-size:11px;display:block}
-.sort-bar{display:flex;gap:8px;align-items:center;margin-bottom:14px;font-size:12px;color:var(--text2)}
-.sort-bar .btn{font-size:11px;padding:4px 10px}
-.table-wrap{background:var(--bg2);border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+body{background:var(--bg);color:var(--t);font-family:'Microsoft YaHei',sans-serif;padding:20px}
+.h{display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:2px solid var(--b);margin-bottom:16px;flex-wrap:wrap;gap:10px}
+h1{color:var(--c);font-size:22px;letter-spacing:2px;text-shadow:0 0 10px rgba(0,255,255,.5)}
+.ctrl{display:flex;gap:8px;align-items:center}
+input[type=date]{background:var(--bg2);color:var(--c);border:1px solid var(--c);padding:6px 10px;border-radius:6px;font-size:14px;outline:none}
+.btn{background:transparent;color:var(--c);border:1px solid var(--c);padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer}.btn:hover{background:var(--c);color:var(--bg)}
+.info{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+.tag{background:rgba(160,196,255,.1);padding:5px 10px;border-radius:6px;font-size:13px;color:var(--t2);border:1px solid rgba(160,196,255,.2)}
+.sp{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.sb{padding:6px 10px;border-radius:6px;cursor:pointer;border:1px solid;font-size:12px;text-align:center;width:78px;flex:none;opacity:.35;transition:.2s;user-select:none}
+.sb.on{opacity:1;box-shadow:0 0 10px}
+.sc{font-size:20px;font-weight:bold;display:block;line-height:1.2}
+.sl{font-size:10px;display:block}
+.tw{background:var(--bg2);border-radius:10px;overflow:hidden;border:1px solid var(--b);max-height:68vh;overflow-y:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{padding:10px 14px;text-align:left;color:var(--text2);background:rgba(0,12,42,.95);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1;cursor:pointer}
-th:hover{color:var(--cyan)}
-td{padding:8px 14px;border-bottom:1px solid rgba(0,255,255,.08)}
-tr:hover{background:var(--hover)}
-.sig-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;margin:1px 2px;font-weight:600;border:1px solid}
-.code-link{font-family:Consolas,Monaco;color:var(--cyan);text-decoration:none}
-.code-link:hover{text-decoration:underline}
-.up{color:var(--up);text-shadow:0 0 5px rgba(0,255,136,.3)}
-.down{color:var(--down)}
-</style>
-</head>
-<body>
-<div class="header">
-  <div>
-    <h1>Daily Stock Signals</h1>
-    <div class="info">
-      <span class="tag" id="dateInfo">--</span>
-      <span class="tag" id="totalInfo">--</span>
-      <span class="tag" id="filterInfo">All signals</span>
-    </div>
-  </div>
-  <div class="ctrl">
-    <input type="date" id="dp" onchange="render()">
-    <button class="btn" onclick="refresh()">Refresh</button>
-    <button class="btn" id="sortBtn" onclick="toggleSort()">Price ↓</button>
-  </div>
-</div>
-<div class="signal-panel" id="sigPanel"></div>
-<div class="sort-bar">
-  Click signals above to filter &mdash; only stocks matching ALL selected signals shown
-</div>
-<div class="table-wrap"><table><thead><tr><th>Code</th><th>Name</th><th onclick="sortBy=0;render()">Close</th><th>Signals</th><th>K</th></tr></thead><tbody id="tbl"></tbody></table></div>
-
+th{padding:9px 12px;text-align:left;color:var(--t2);background:rgba(0,12,42,.95);border-bottom:1px solid var(--b);position:sticky;top:0;z-index:1;font-size:12px}
+td{padding:7px 12px;border-bottom:1px solid rgba(0,255,255,.06)}
+tr:hover{background:var(--h)}
+.pl{font-family:Consolas,monospace;color:var(--c)}
+.up{color:var(--u)}.down{color:var(--d)}
+.kl{display:inline-block;color:var(--c);border:1px solid var(--c);padding:2px 8px;border-radius:3px;font-size:11px;text-decoration:none}.kl:hover{background:var(--c);color:var(--bg)}
+.st{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;margin:1px;font-weight:600;border:1px solid}
+</style></head><body>
+<div class="h"><div><h1>Daily Stock Signals</h1><div class="info"><span class="tag" id="dinfo">--</span><span class="tag" id="tinfo">--</span></div></div>
+<div class="ctrl"><input type="date" id="dp" onchange="render()"><button class="btn" onclick="render()">Go</button></div></div>
+<div class="sp" id="sp"></div>
+<div class="tw"><table><thead><tr><th>Code</th><th>Name</th><th>Close</th><th>Signals</th><th>K</th></tr></thead><tbody id="tb"></tbody></table></div>
 <script>
-var SIGS=['启动','抢筹','突破','爆发','转强','起涨','主升','加速','强攻'];
-var COLORS=['#ff9800','#e91e63','#2196f3','#f44336','#4caf50','#9c27b0','#ffd700','#00ffff','#ff0077'];
-var activeSigs = {}; // {sigName: true/false}
-var sortBy = 1; // 0=code, 1=close desc
-var sortDesc = true;
-var DATA = null;
-var currentSignals = {}; // {sig: [{code, close}]}
-
-SIGS.forEach(function(s){ activeSigs[s] = false; });
-document.getElementById('filterInfo').textContent = 'Click signals to filter';
-
-async function refresh(){
-  try{
-    var resp=await fetch('daily_signals.json');
-    if(!resp.ok) throw new Error('HTTP '+resp.status);
-    DATA=await resp.json();
-    if(!DATA.dates||DATA.dates.length===0) throw new Error('Empty');
-    document.getElementById('dp').min=DATA.dates[0];
-    document.getElementById('dp').max=DATA.dates[DATA.dates.length-1];
-    document.getElementById('dp').value=DATA.dates[DATA.dates.length-1];
+var S=['启动','抢筹','突破','爆发','转强','起涨','主升','加速','强攻'];
+var C=['#ff9800','#e91e63','#2196f3','#f44336','#4caf50','#9c27b0','#ffd700','#00ffff','#ff0077'];
+var D=null, AS={}; S.forEach(function(s){AS[s]=false;});
+(function(){
+  fetch('daily_signals.json').then(function(r){return r.json()}).then(function(d){
+    D=d; document.getElementById('dp').value=D.dates[D.dates.length-1];
+    document.getElementById('dp').min=D.dates[0];
+    document.getElementById('dp').max=D.dates[D.dates.length-1];
     render();
-  }catch(e){
-    document.getElementById('totalInfo').textContent='Error: '+e.message;
-    console.error(e);
-  }
-}
+  }).catch(function(e){
+    document.getElementById('tb').innerHTML='<tr><td colspan=5 style=\"color:#ff0077;padding:20px\">Error: '+e.message+'</td></tr>';
+  });
+})();
 
 function render(){
-  if (!DATA) return refresh();
-  var d = document.getElementById('dp').value;
-  document.getElementById('dateInfo').textContent = 'Date: ' + d;
-  currentSignals = DATA.signals[d] || {};
-
+  if(!D){return;}
+  var dt=document.getElementById('dp').value;
+  var sigs=D.signals[dt]||{};
+  var nn=D.names||{};
+  document.getElementById('dinfo').textContent=dt;
+  
   // Signal buttons
-  var panel = '';
-  var activeCount = 0;
-  SIGS.forEach(function(sig, i){
-    var entries = currentSignals[sig] || [];
-    var cnt = entries.length;
-    var on = activeSigs[sig];
-    if (on) activeCount++;
-    panel += '<div class="sig-btn ' + (on ? 'on' : '') + '" style="color:'+COLORS[i]+';border-color:'+COLORS[i]+'" onclick="toggleSig(\''+sig+'\')">'
-      + '<span class="sig-count">' + cnt + '</span>'
-      + '<span class="sig-label">' + sig + '</span></div>';
+  var sp='';var any=false;
+  S.forEach(function(s,i){AS[s]=AS[s]||false;if(AS[s])any=true;});
+  S.forEach(function(s,i){
+    var cnt=(sigs[s]||[]).length;
+    sp+='<div class="sb'+(AS[s]?' on':'')+'" style="color:'+C[i]+';border-color:'+C[i]+'" onclick="AS[\''+s+'\']=!AS[\''+s+'\'];render()"><span class="sc">'+cnt+'</span><span class="sl">'+s+'</span></div>';
   });
-  document.getElementById('sigPanel').innerHTML = panel;
-
-  // Compute: show all stocks with any signal (union), or intersection of selected
-  var stockMap = {};
-  var first = true;
-  var anySelected = false;
-  SIGS.forEach(function(s){ if(activeSigs[s]) anySelected = true; });
-
-  SIGS.forEach(function(sig){
-    var shouldInclude = !anySelected || activeSigs[sig];
-    if (!shouldInclude) return;
-    var entries = currentSignals[sig] || [];
-    var codes = {};
-    entries.forEach(function(e){ codes[e.code] = e.close; });
-    if (!anySelected){
-      // Union mode: show all with any signal
-      for (var c in codes){
-        if (!stockMap[c]) stockMap[c] = {signals:[], close: codes[c]};
-        stockMap[c].signals.push(sig);
-      }
-    } else if (first){
-      for (var c in codes) stockMap[c] = {signals:[sig], close: codes[c]};
-      first = false;
-    } else {
-      var newMap = {};
-      for (var c in stockMap){
-        if (codes[c] !== undefined){
-          stockMap[c].signals.push(sig);
-          newMap[c] = stockMap[c];
-        }
-      }
-      stockMap = newMap;
-    }
+  document.getElementById('sp').innerHTML=sp;
+  
+  // Compute matching stocks
+  var sm={};var first=true;
+  S.forEach(function(sig){
+    var use=!any||AS[sig];
+    if(!use)return;
+    var es=sigs[sig]||[];
+    var cm={};es.forEach(function(e){cm[e.code]=e.close;});
+    if(!any){for(var c in cm){if(!sm[c])sm[c]={s:[],cl:cm[c]};sm[c].s.push(sig);}}
+    else if(first){for(var c in cm)sm[c]={s:[sig],cl:cm[c]};first=false;}
+    else{var nm={};for(var c in sm){if(cm[c]!==undefined){sm[c].s.push(sig);nm[c]=sm[c];}}sm=nm;}
   });
-
-  var codes = Object.keys(stockMap);
-  document.getElementById('filterInfo').textContent = activeCount + '/' + SIGS.length + ' signals active';
-  document.getElementById('totalInfo').textContent = codes.length + ' stocks match';
-
-  // Sort
-  codes.sort(function(a, b){
-    var va = sortBy === 0 ? a : (stockMap[a].close || 0);
-    var vb = sortBy === 0 ? b : (stockMap[b].close || 0);
-    return sortDesc ? (vb - va) : (va - vb);
-  });
-
-  var rows = '';
+  var codes=Object.keys(sm).sort(function(a,b){return sm[b].s.length-sm[a].s.length;});
+  document.getElementById('tinfo').textContent=codes.length+' stocks';
+  
+  var rows='';
   codes.forEach(function(c){
-    var e = stockMap[c];
-    var tags = e.signals.map(function(s){
-      var i = SIGS.indexOf(s);
-      return '<span class="sig-tag" style="color:'+COLORS[i]+';border-color:'+COLORS[i]+'">'+s+'</span>';
-    }).join(' ');
-    rows += '<tr>'
-      + '<td><span class="code-link">' + c + '</span></td>'
-      + '<td>' + (DATA.names[c]||'') + '</td>'
-      + '<td>' + e.close.toFixed(2) + '</td>'
-      + '<td>' + tags + '</td>' + '<td><a class="chart-link" href="chart.html?code='+c" target="_blank">K</a></td></tr>';
+    var e=sm[c],nm=nn[c]||'';
+    var tags=e.s.map(function(s){var i=S.indexOf(s);return '<span class="st" style="color:'+C[i]+';border-color:'+C[i]+'">'+s+'</span>';}).join(' ');
+    rows+='<tr><td class="pl">'+c+'</td><td>'+nm+'</td><td>'+e.cl.toFixed(2)+'</td><td>'+tags+'</td><td><a class="kl" href="chart.html?code='+c+'" target="_blank">K</a></td></tr>';
   });
-  document.getElementById('tbl').innerHTML = rows || '<tr><td colspan=5 style="text-align:center;color:var(--text2);padding:40px">No stocks match all selected signals</td></tr>';
+  document.getElementById('tb').innerHTML=rows||'<tr><td colspan=5 style="padding:20px;color:var(--t2)">Click signals above to filter</td></tr>';
 }
-
-function toggleSig(sig){
-  activeSigs[sig] = !activeSigs[sig];
-  render();
-}
-
-function toggleSort(){
-  sortDesc = !sortDesc;
-  document.getElementById('sortBtn').textContent = 'Price ' + (sortDesc ? '↓' : '↑');
-  render();
-}
-
-// Init
-(function(){
-  var p = document.getElementById('dp');
-  var urlP = new URLSearchParams(window.location.search).get('date');
-  if (urlP) p.value = urlP;
-  refresh();
-})();
-</script>
-</body>
-</html>
+</script></body></html>
