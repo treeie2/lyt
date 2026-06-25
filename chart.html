@@ -3,106 +3,126 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>K-line Chart</title>
+<title>K-line</title>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <style>
-:root{--bg:#00041a;--bg2:#000c2a;--cyan:#00ffff;--text:#a0c4ff;--up:#00ff88;--down:#ff0077}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Microsoft YaHei',sans-serif}
-.tb{padding:8px 14px;background:var(--bg2);display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(0,255,255,.3)}
-.tb h2{color:var(--cyan);font-size:16px;text-shadow:0 0 8px rgba(0,255,255,.5)}
-.tb a{color:var(--cyan);text-decoration:none;font-size:13px;padding:4px 12px;border:1px solid var(--cyan);border-radius:4px}.tb a:hover{background:var(--cyan);color:var(--bg)}
-.tb .info{font-size:12px;color:var(--text)}
+body{background:#00041a;color:#a0c4ff;font-family:'Microsoft YaHei'}
+.tb{padding:8px 14px;background:#000c2a;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(0,255,255,.3)}
+.tb h2{color:#00ffff;font-size:16px}
+.tb a{color:#00ffff;text-decoration:none;font-size:13px;padding:4px 12px;border:1px solid #00ffff;border-radius:4px}
+.tb a:hover{background:#00ffff;color:#00041a}
 #chart{width:100%;height:calc(100vh - 44px)}
-.ld{text-align:center;padding:40px;color:var(--text);font-size:14px}
+.ld{text-align:center;padding:60px;font-size:14px;color:#a0c4ff}
+.err{color:#ff0077}
 </style>
 </head>
 <body>
-<div class="tb">
-  <h2 id="title">Loading...</h2>
-  <span class="info" id="info"></span>
-  <a href="../">Back</a>
-</div>
-<div id="chart"><div class="ld">Loading K-line data...</div></div>
+<div class="tb"><h2 id="title">--</h2><span id="info" style="font-size:12px"></span><a href="../">Back</a></div>
+<div id="chart"><div class="ld">Loading...</div></div>
 <script>
-var code = new URLSearchParams(window.location.search).get('code') || '600519';
-var prefix = code[0]=='6' ? 'sh' : 'sz';
-document.getElementById('title').textContent = code;
+(function(){
+  var code = new URLSearchParams(window.location.search).get('code') || '600519';
+  var prefix = code[0]=='6' ? 'sh' : 'sz';
+  document.getElementById('title').textContent = code;
 
-// Fetch from Tencent
-fetch('https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param='+prefix+code+',day,,,500,qfq')
-.then(function(r){return r.json();})
-.then(function(data){
-  var klines = data.data[prefix+code].qfqday || data.data[prefix+code].day || [];
-  if (!klines || klines.length===0){
-    document.getElementById('chart').innerHTML='<div class="ld">No data for '+code+'</div>';
-    return;
-  }
-  var dates=[], o=[], c=[], h=[], l=[], v=[];
-  klines.forEach(function(k){
-    dates.push(k[0]);
-    o.push(parseFloat(k[1]));
-    c.push(parseFloat(k[2]));
-    h.push(parseFloat(k[3]));
-    l.push(parseFloat(k[4]));
-    v.push(parseFloat(k[5]));
-  });
-  var n=dates.length;
-  document.getElementById('info').textContent = n+' days | C:'+c[n-1].toFixed(2);
+  var url = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param='+prefix+code+',day,,,500,qfq';
 
-  function sma(arr,p){
-    var out=[];
-    for(var i=0;i<n;i++){
-      if(i<p-1){out.push(null);continue}
-      var s=0; for(var j=0;j<p;j++) s+=arr[i-j];
-      out.push(+(s/p).toFixed(2));
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, true);
+  xhr.onload = function(){
+    if (xhr.status !== 200){
+      document.getElementById('chart').innerHTML = '<div class="ld err">HTTP '+xhr.status+'</div>';
+      return;
     }
-    return out;
-  }
+    try {
+      var data = JSON.parse(xhr.responseText);
+      var stockData = data.data[prefix+code];
+      if (!stockData) throw new Error('No data for '+code);
+      var klines = stockData.qfqday || stockData.day || [];
+      if (klines.length === 0) throw new Error('Empty data');
 
-  var maCf=[{p:5,cl:'#ff9800'},{p:10,cl:'#4fc3f7'},{p:20,cl:'#e040fb'},{p:40,cl:'#66bb6a'},{p:60,cl:'#ef5350'}];
-  var series=[];
-  // K-line
-  var kld=[];
-  for(var i=0;i<n;i++) kld.push(isNaN(o[i])?null:[o[i],c[i],l[i],h[i]]);
-  series.push({type:'candlestick',name:'K',data:kld,
-    itemStyle:{color:'#00ff88',color0:'#ff0077',borderColor:'#00ff88',borderColor0:'#ff0077'},
-    xAxisIndex:0,yAxisIndex:0});
+      var dates=[], o=[], c=[], h=[], l=[], v=[];
+      for (var i=0; i<klines.length; i++){
+        var k = klines[i];
+        dates.push(k[0]);
+        o.push(parseFloat(k[1]));
+        c.push(parseFloat(k[2]));
+        h.push(parseFloat(k[3]));
+        l.push(parseFloat(k[4]));
+        v.push(parseFloat(k[5]));
+      }
+      var n = dates.length;
+      document.getElementById('info').textContent = n+'d  O:'+o[0].toFixed(1)+' C:'+c[n-1].toFixed(2);
 
-  // MA lines
-  maCf.forEach(function(m){
-    series.push({type:'line',name:'MA'+m.p,data:sma(c,m.p),
-      lineStyle:{color:m.cl,width:(m.p>=40?2:1)},symbol:'none',
-      xAxisIndex:0,yAxisIndex:0});
-  });
+      document.getElementById('chart').innerHTML = '';
+      var chart = echarts.init(document.getElementById('chart'), 'dark');
 
-  // Volume
-  var vd=[];
-  for(var i=0;i<n;i++){
-    vd.push({value:[dates[i],v[i]],
-      itemStyle:{color:(i>0&&c[i]>=c[i-1]?'rgba(0,255,136,' : 'rgba(255,0,119,')+(0.5+''}});
-  }
-  series.push({type:'bar',name:'Vol',data:vd,xAxisIndex:1,yAxisIndex:1});
+      function sma(arr, p){
+        var out = [];
+        for (var i=0; i<n; i++){
+          if (i < p-1){ out.push(null); continue; }
+          var s = 0;
+          for (var j=0; j<p; j++) s += arr[i-j];
+          out.push(+(s/p).toFixed(2));
+        }
+        return out;
+      }
 
-  var chart = echarts.init(document.getElementById('chart'),'dark');
-  chart.setOption({
-    backgroundColor:'#00041a',animation:false,
-    tooltip:{trigger:'axis',axisPointer:{type:'cross'},backgroundColor:'rgba(0,12,42,0.95)',borderColor:'rgba(0,255,255,.3)'},
-    dataZoom:[{type:'slider',xAxisIndex:[0,1],start:70,end:100,height:20,bottom:0,
-      borderColor:'rgba(0,255,255,.2)',backgroundColor:'#000c2a',handleStyle:{color:'#00ffff'},
-      dataBackground:{lineStyle:{color:'#a0c4ff'},areaStyle:{color:'rgba(0,255,255,.1)'}}}],
-    grid:[{left:60,right:60,top:10,bottom:'40%'},{left:60,right:60,top:'64%',bottom:40}],
-    xAxis:[{type:'category',data:dates,axisLine:{lineStyle:{color:'rgba(0,255,255,.3)'}},axisTick:{show:false},axisLabel:{color:'#a0c4ff'},gridIndex:0},
-           {type:'category',data:dates,axisLine:{lineStyle:{color:'rgba(0,255,255,.3)'}},axisTick:{show:false},axisLabel:{show:false},gridIndex:1}],
-    yAxis:[{type:'value',scale:true,position:'right',gridIndex:0,axisLabel:{color:'#a0c4ff'},splitLine:{lineStyle:{color:'rgba(0,255,255,.1)'}}},
-           {type:'value',position:'right',gridIndex:1,axisLabel:{color:'#a0c4ff',formatter:function(v){return v>=1e8?(v/1e8).toFixed(1)+'E':(v/1e4).toFixed(0)+'W'}},splitLine:{show:false}}],
-    series:series
-  });
-  window.onresize=function(){chart.resize();};
-})
-.catch(function(e){
-  document.getElementById('chart').innerHTML='<div class="ld" style="color:#ff0077">Failed to load: '+e.message+'</div>';
-});
+      var up = '#00ff88', down = '#ff0077';
+      var kld = [];
+      for (var i=0; i<n; i++) kld.push([o[i], c[i], l[i], h[i]]);
+
+      var series = [{
+        type: 'candlestick', name: 'K', data: kld,
+        itemStyle: {color: up, color0: down, borderColor: up, borderColor0: down},
+        xAxisIndex: 0, yAxisIndex: 0
+      }];
+
+      var maCf = [{p:5,c:'#ff9800'},{p:10,c:'#4fc3f7'},{p:20,c:'#e040fb'},{p:40,c:'#66bb6a'},{p:60,c:'#ef5350'}];
+      for (var mi=0; mi<maCf.length; mi++){
+        var m = maCf[mi];
+        series.push({
+          type: 'line', name: 'MA'+m.p, data: sma(c, m.p),
+          lineStyle: {color: m.c, width: m.p>=40?2:1}, symbol: 'none',
+          xAxisIndex: 0, yAxisIndex: 0
+        });
+      }
+
+      var vd = [];
+      for (var i=0; i<n; i++){
+        vd.push({value: [dates[i], v[i]],
+          itemStyle: {color: (i>0 && c[i]>=c[i-1] ? 'rgba(0,255,136,0.5)' : 'rgba(255,0,119,0.5)')}});
+      }
+      series.push({type: 'bar', name: 'Vol', data: vd, xAxisIndex: 1, yAxisIndex: 1});
+
+      chart.setOption({
+        backgroundColor: '#00041a',
+        tooltip: {trigger: 'axis', axisPointer: {type: 'cross'}, backgroundColor: 'rgba(0,12,42,0.95)', borderColor: 'rgba(0,255,255,.3)'},
+        dataZoom: [{type: 'slider', xAxisIndex: [0,1], start: 70, end: 100, height: 20, bottom: 0,
+          borderColor: 'rgba(0,255,255,.2)', backgroundColor: '#000c2a', handleStyle: {color: '#00ffff'}}],
+        grid: [{left: 60, right: 60, top: 10, bottom: '40%'}, {left: 60, right: 60, top: '64%', bottom: 40}],
+        xAxis: [
+          {type: 'category', data: dates, axisLine: {lineStyle: {color: 'rgba(0,255,255,.3)'}}, axisTick: {show: false}, axisLabel: {color: '#a0c4ff'}, gridIndex: 0},
+          {type: 'category', data: dates, axisLine: {lineStyle: {color: 'rgba(0,255,255,.3)'}}, axisTick: {show: false}, axisLabel: {show: false}, gridIndex: 1}
+        ],
+        yAxis: [
+          {type: 'value', scale: true, position: 'right', gridIndex: 0, axisLabel: {color: '#a0c4ff'}, splitLine: {lineStyle: {color: 'rgba(0,255,255,.1)'}}},
+          {type: 'value', position: 'right', gridIndex: 1, axisLabel: {color: '#a0c4ff', formatter: function(v){return v>=1e8 ? (v/1e8).toFixed(1)+'E' : (v/1e4).toFixed(0)+'W'}}, splitLine: {show: false}}
+        ],
+        series: series
+      });
+      window.onresize = function(){ chart.resize(); };
+
+    } catch(e){
+      document.getElementById('chart').innerHTML = '<div class="ld err">Error: '+e.message+'</div>';
+    }
+  };
+  xhr.onerror = function(){
+    document.getElementById('chart').innerHTML = '<div class="ld err">Network error (may need direct connection)</div>';
+  };
+  xhr.send();
+})();
 </script>
 </body>
 </html>
