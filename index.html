@@ -15,9 +15,20 @@ tr:hover{background:#2a2a2a} a{color:#4fc3f7;text-decoration:none}a:hover{text-d
 .l-zq{border:1px solid #4caf50;color:#4caf50}
 .l-qz{border:1px solid #9c27b0;color:#9c27b0}
 .l-zs{border:1px solid #ffd700;color:#ffd700}
+.topbar{display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap}
+.btn-refresh{padding:6px 18px;background:#2196f3;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600}
+.btn-refresh:hover{background:#1976d2}
+.btn-refresh:disabled{background:#555;cursor:wait}
+.updated{font-size:12px;color:#aaa}
+.spin{animation:spin 1s linear infinite}@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.up{color:#4caf50}.down{color:#ef5350}
 </style></head><body>
-<h1>Stock Screener - Signal Dates</h1>
-<p class="sub">12 stocks | Score >= 50 | 2026-06-25 17:46</p>
+<div class="topbar">
+  <h1>Stock Screener</h1>
+  <button class="btn-refresh" onclick="refreshQuotes()" id="btnR">Refresh Quotes</button>
+  <span class="updated" id="status">Data: 2026-06-25</span>
+</div>
+<p class="sub">12 stocks | Score >= 50</p>
 <div class="legend">
   <span class="lg l-qd">启动(量托)</span>
   <span class="lg l-qc">抢筹(多方炮)</span>
@@ -29,78 +40,133 @@ tr:hover{background:#2a2a2a} a{color:#4fc3f7;text-decoration:none}a:hover{text-d
 </div>
 <table><thead><tr>
   <th>Code</th><th>Name</th><th>Close</th><th>Mo%</th><th>Score</th><th>Signal Dates</th><th>Chart</th>
-</tr></thead><tbody>
-<tr>
-      <td>002452</td><td>长高电气</td><td>12.12</td>
-      <td style="color:#ef5350">-1.7%</td>
-      <td><b>80</b></td>
-      <td style="font-size:11px;max-width:400px;white-space:normal">启动: 2026-03-02, 2026-06-24 | 抢筹: 2026-03-02, 2026-06-24 | 突破: 2026-05-18, 2026-06-24 | 爆发: 2026-02-04, 2026-06-24 | </td>
-      <td><a href="chart_01_002452.html">K线</a></td>
-    </tr><tr>
-      <td>002046</td><td>国机精工</td><td>69.95</td>
-      <td style="color:#4caf50">+35.5%</td>
-      <td><b>70</b></td>
-      <td style="font-size:11px;max-width:400px;white-space:normal">抢筹: 2025-07-16, 2026-06-24 | 爆发: 2026-04-08, 2026-06-24 | 主升: 2026-06-23, 2026-06-24 | </td>
-      <td><a href="chart_02_002046.html">K线</a></td>
-    </tr><tr>
-      <td>000967</td><td>盈峰环境</td><td>11.02</td>
-      <td style="color:#4caf50">+0.5%</td>
-      <td><b>60</b></td>
-      <td style="font-size:11px;max-width:400px;white-space:normal">启动: 2026-02-25, 2026-06-24 | 抢筹: 2026-03-27, 2026-06-24 | 爆发: 2026-05-06, 2026-06-24 | </td>
-      <td><a href="chart_03_000967.html">K线</a></td>
-    </tr><tr>
-      <td>000925</td><td>众合科技</td><td>9.09</td>
-      <td style="color:#4caf50">+16.7%</td>
-      <td><b>60</b></td>
-      <td style="font-size:11px;max-width:400px;white-space:normal">启动: 2026-06-10, 2026-06-24 | 抢筹: 2025-07-21, 2026-06-24 | 爆发: 2026-05-12, 2026-06-24 | </td>
-      <td><a href="chart_04_000925.html">K线</a></td>
-    </tr><tr>
-      <td>000519</td><td>中兵红箭</td><td>21.59</td>
-      <td style="color:#4caf50">+18.9%</td>
-      <td><b>50</b></td>
-      <td style="font-size:11px;max-width:400px;white-space:normal">爆发: 2025-06-25, 2026-06-22 | 主升: 2026-06-23, 2026-06-24 | </td>
-      <td><a href="chart_05_000519.html">K线</a></td>
-    </tr><tr>
-      <td>300440</td><td>运达科技</td><td>20.11</td>
-      <td style="color:#4caf50">+2.9%</td>
-      <td><b>50</b></td>
-      <td style="font-size:11px;max-width:400px;white-space:normal">启动: 2026-05-29, 2026-06-23 | 抢筹: 2024-09-03, 2026-06-23 | 主升: 2026-06-24, 2026-06-25 | </td>
-      <td><a href="chart_06_300440.html">K线</a></td>
-    </tr><tr>
-      <td>002156</td><td>通富微电</td><td>74.64</td>
-      <td style="color:#4caf50">+4.4%</td>
-      <td><b>50</b></td>
-      <td style="font-size:11px;max-width:400px;white-space:normal">启动: 2026-04-13, 2026-06-24 | 抢筹: 2026-04-13, 2026-06-24 | 转强: 2026-04-13, 2026-06-22 | 主升: 2026-06-23, 2026-06-24 | </td>
-      <td><a href="chart_07_002156.html">K线</a></td>
-    </tr><tr>
-      <td>603061</td><td>金海通</td><td>400.05</td>
-      <td style="color:#4caf50">+33.3%</td>
-      <td><b>50</b></td>
-      <td style="font-size:11px;max-width:400px;white-space:normal">启动: 2026-03-27, 2026-06-23 | 抢筹: 2026-06-23 | 主升: 2026-06-24, 2026-06-25 | </td>
-      <td><a href="chart_08_603061.html">K线</a></td>
-    </tr><tr>
-      <td>600596</td><td>新安股份</td><td>17.15</td>
-      <td style="color:#4caf50">+37.0%</td>
-      <td><b>50</b></td>
-      <td style="font-size:11px;max-width:400px;white-space:normal">爆发: 2026-06-03, 2026-06-24 | 主升: 2026-06-24, 2026-06-25 | </td>
-      <td><a href="chart_09_600596.html">K线</a></td>
-    </tr><tr>
-      <td>600516</td><td></td><td>6.77</td>
-      <td style="color:#4caf50">+30.9%</td>
-      <td><b>50</b></td>
-      <td style="font-size:11px;max-width:400px;white-space:normal">爆发: 2026-06-05, 2026-06-25 | 主升: 2026-06-24, 2026-06-25 | </td>
-      <td><a href="chart_10_600516.html">K线</a></td>
-    </tr><tr>
-      <td>600584</td><td>长电科技</td><td>104.17</td>
-      <td style="color:#4caf50">+22.9%</td>
-      <td><b>50</b></td>
-      <td style="font-size:11px;max-width:400px;white-space:normal">启动: 2026-04-13, 2026-06-24 | 抢筹: 2025-07-17, 2026-06-24 | 主升: 2026-06-24, 2026-06-25 | </td>
-      <td><a href="chart_11_600584.html">K线</a></td>
-    </tr><tr>
-      <td>002068</td><td>黑猫股份</td><td>13.48</td>
-      <td style="color:#4caf50">+37.0%</td>
-      <td><b>50</b></td>
-      <td style="font-size:11px;max-width:400px;white-space:normal">爆发: 2025-04-25, 2026-06-22 | 主升: 2026-06-23, 2026-06-24 | </td>
-      <td><a href="chart_12_002068.html">K线</a></td>
-    </tr>
-</tbody></table></body></html>
+</tr></thead><tbody id="tbl">
+</tbody></table>
+<script>
+// ============ DATA ============
+var STOCKS = [
+  {code:'002452',name:'长高电气',score:'80',signals:'启动: 2026-03-02, 2026-06-24 | 抢筹: 2026-03-02, 2026-06-24 | 突破: 2026-05-18, 2026-06-24 | 爆发: 2026-02-04, 2026-06-24', file:'chart_01_002452.html', close:'12.12', mchg:'-1.7'},
+  {code:'002046',name:'国机精工',score:'70',signals:'抢筹: 2025-07-16, 2026-06-24 | 爆发: 2026-04-08, 2026-06-24 | 主升: 2026-06-23, 2026-06-24', file:'chart_02_002046.html', close:'69.95', mchg:'+35.5'},
+  {code:'000967',name:'盈峰环境',score:'60',signals:'启动: 2026-02-25, 2026-06-24 | 抢筹: 2026-03-27, 2026-06-24 | 爆发: 2026-05-06, 2026-06-24', file:'chart_03_000967.html', close:'11.02', mchg:'+0.5'},
+  {code:'000925',name:'众合科技',score:'60',signals:'启动: 2026-06-10, 2026-06-24 | 抢筹: 2025-07-21, 2026-06-24 | 爆发: 2026-05-12, 2026-06-24', file:'chart_04_000925.html', close:'9.09', mchg:'+16.7'},
+  {code:'000519',name:'中兵红箭',score:'50',signals:'爆发: 2025-06-25, 2026-06-22 | 主升: 2026-06-23, 2026-06-24', file:'chart_05_000519.html', close:'21.59', mchg:'+18.9'},
+  {code:'300440',name:'运达科技',score:'50',signals:'启动: 2026-05-29, 2026-06-23 | 抢筹: 2024-09-03, 2026-06-23 | 主升: 2026-06-24, 2026-06-25', file:'chart_06_300440.html', close:'20.11', mchg:'+2.9'},
+  {code:'002156',name:'通富微电',score:'50',signals:'启动: 2026-04-13, 2026-06-24 | 抢筹: 2026-04-13, 2026-06-24 | 转强: 2026-05-25, 2026-06-24 | 主升: 2026-06-05, 2026-06-24', file:'chart_07_002156.html', close:'74.64', mchg:'+4.4'},
+  {code:'603061',name:'金海通',score:'50',signals:'启动: 2026-03-27, 2026-06-23 | 抢筹: 2026-06-23 | 主升: 2026-06-24', file:'chart_08_603061.html', close:'400.05', mchg:'+33.3'},
+  {code:'600596',name:'新安股份',score:'50',signals:'爆发: 2026-06-03, 2026-06-24 | 主升: 2026-06-24, 2026-06-25', file:'chart_09_600596.html', close:'17.15', mchg:'+37.0'},
+  {code:'600516',name:'方大炭素',score:'50',signals:'爆发: 2026-06-05, 2026-06-25 | 主升: 2026-06-24, 2026-06-25', file:'chart_10_600516.html', close:'6.77', mchg:'+30.9'},
+  {code:'600584',name:'长电科技',score:'50',signals:'启动: 2026-04-13, 2026-06-24 | 抢筹: 2025-07-17, 2026-06-24 | 主升: 2026-06-05, 2026-06-24', file:'chart_11_600584.html', close:'104.17', mchg:'+22.9'},
+  {code:'002068',name:'黑猫股份',score:'50',signals:'爆发: 2025-04-25, 2026-06-22 | 主升: 2026-06-23, 2026-06-24', file:'chart_12_002068.html', close:'13.48', mchg:'+37.0'},
+];
+
+// init table
+function renderTable() {
+  var rows = '';
+  STOCKS.forEach(function(s) {
+    var mc = parseFloat(s.mchg);
+    var cls = mc >= 0 ? 'up' : 'down';
+    rows += '<tr>'
+      + '<td>' + s.code + '</td><td>' + s.name + '</td>'
+      + '<td>' + s.close + '</td>'
+      + '<td class="' + cls + '">' + (mc >= 0 ? '+' : '') + s.mchg + '%</td>'
+      + '<td><b>' + s.score + '</b></td>'
+      + '<td style="font-size:11px;max-width:400px;white-space:normal">' + s.signals + '</td>'
+      + '<td><a href="' + s.file + '">K</a></td>'
+      + '</tr>';
+  });
+  document.getElementById('tbl').innerHTML = rows;
+}
+renderTable();
+
+// ============ REFRESH: 腾讯行情API ============
+function refreshQuotes() {
+  var btn = document.getElementById('btnR');
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+  document.getElementById('status').textContent = 'Fetching latest quotes...';
+
+  // 12 codes batched
+  var codes = STOCKS.map(function(s) {
+    var prefix = s.code[0] === '6' ? 'sh' : 'sz';
+    return prefix + s.code;
+  }).join(',');
+
+  var url = 'http://qt.gtimg.cn/q=' + codes;
+
+  // JSONP: append script tag
+  var script = document.createElement('script');
+  var callbackName = '_cb_' + Date.now();
+  window[callbackName] = function(data) {
+    // Not used directly, data loaded as global vars v_sh600519 etc.
+    try { parseQuotes(); } catch(e) { console.error(e); }
+    cleanup();
+  };
+
+  // Parse after script loads
+  script.onload = function() {
+    try {
+      parseQuotes();
+      document.getElementById('status').textContent = 'Quotes refreshed: ' + new Date().toLocaleString('zh-CN');
+    } catch(e) {
+      document.getElementById('status').textContent = 'Parse error: ' + e.message;
+    }
+    cleanup();
+  };
+  script.onerror = function() {
+    document.getElementById('status').textContent = 'API unavailable (try later)';
+    cleanup();
+  };
+
+  script.src = url;
+  script.id = '_qt_script';
+  // Remove old script if exists
+  var old = document.getElementById('_qt_script');
+  if (old) old.remove();
+  document.head.appendChild(script);
+
+  function cleanup() {
+    btn.disabled = false;
+    btn.textContent = 'Refresh Quotes';
+    delete window[callbackName];
+  }
+}
+
+function parseQuotes() {
+  var updated = 0;
+  STOCKS.forEach(function(s) {
+    var prefix = s.code[0] === '6' ? 'sh' : 'sz';
+    var key = 'v_' + prefix + s.code;
+    var raw = window[key];
+    if (!raw) return;
+    var parts = raw.split('~');
+    // Tencent format: name~code~current~change%~change~volume...
+    // Index 3 = current price, Index 4 = change %
+    if (parts.length < 5) return;
+    var newClose = parseFloat(parts[3]);
+    var newChg = parseFloat(parts[32]); // change percent
+    if (isNaN(newClose)) return;
+    s.close = newClose.toFixed(2);
+    s.mchg = isNaN(newChg) ? s.mchg : newChg.toFixed(1);
+    updated++;
+  });
+  if (updated > 0) {
+    renderTable();
+    document.getElementById('status').textContent = 'Quotes refreshed: ' + new Date().toLocaleString('zh-CN') + ' (' + updated + ' stocks)';
+  }
+}
+
+// Auto-refresh at 11:35 and 15:05
+function scheduleAutoRefresh() {
+  setInterval(function() {
+    var now = new Date();
+    var h = now.getHours(), m = now.getMinutes();
+    // Refresh at 11:35 and 15:05 on weekdays
+    if (now.getDay() >= 1 && now.getDay() <= 5) {
+      if ((h === 11 && m === 35) || (h === 15 && m === 5)) {
+        refreshQuotes();
+      }
+    }
+  }, 60000);
+}
+scheduleAutoRefresh();
+</script></body></html>
