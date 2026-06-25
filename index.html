@@ -34,7 +34,7 @@ tr:hover{background:var(--h)}
 <div class="h"><div><h1>Daily Stock Signals</h1><div class="info"><span class="tag" id="dinfo">--</span><span class="tag" id="tinfo">--</span></div></div>
 <div class="ctrl"><input type="date" id="dp" onchange="render()"><button class="btn" onclick="render()">Go</button></div></div>
 <div class="sp" id="sp"></div>
-<div class="gp" id="gp"></div>
+<div class="gp" id="gp" style="max-height:42px;overflow-y:hidden;position:relative"></div><div style="text-align:right;margin-bottom:8px"><span class="tag" id="gptoggle" style="cursor:pointer;font-size:10px" onclick="var g=document.getElementById('gp');g.style.maxHeight=g.style.maxHeight=='42px'?'200px':'42px';this.textContent=this.textContent=='展开'?'收起':'展开'">展开</span></div>
 <div class="tw"><table><thead><tr><th>Code</th><th>Name</th><th>Close</th><th>五维</th><th>Signals</th><th>分组</th><th>K</th></tr></thead><tbody id="tb"></tbody></table></div>
 <script>
 var S=['启动','抢筹','突破','爆发','转强','起涨','主升','加速','强攻'];
