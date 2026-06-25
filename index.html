@@ -73,7 +73,8 @@ var sortDesc = true;
 var DATA = null;
 var currentSignals = {}; // {sig: [{code, close}]}
 
-SIGS.forEach(function(s){ activeSigs[s] = true; });
+SIGS.forEach(function(s){ activeSigs[s] = false; });
+document.getElementById('filterInfo').textContent = 'Click signals to filter';
 
 async function refresh(){
   try{
@@ -111,26 +112,33 @@ function render(){
   });
   document.getElementById('sigPanel').innerHTML = panel;
 
-  // Compute intersection of selected signals
-  var stockMap = {}; // {code: {signals: [], close}}
+  // Compute: show all stocks with any signal (union), or intersection of selected
+  var stockMap = {};
   var first = true;
+  var anySelected = false;
+  SIGS.forEach(function(s){ if(activeSigs[s]) anySelected = true; });
+
   SIGS.forEach(function(sig){
-    if (!activeSigs[sig]) return;
+    var shouldInclude = !anySelected || activeSigs[sig];
+    if (!shouldInclude) return;
+    var entries = currentSignals[sig] || [];
     var codes = {};
-    (currentSignals[sig] || []).forEach(function(e){
-      codes[e.code] = e.close;
-    });
-    if (first){
-      for (var c in codes) stockMap[c] = {signals: [sig], close: codes[c]};
+    entries.forEach(function(e){ codes[e.code] = e.close; });
+    if (!anySelected){
+      // Union mode: show all with any signal
+      for (var c in codes){
+        if (!stockMap[c]) stockMap[c] = {signals:[], close: codes[c]};
+        stockMap[c].signals.push(sig);
+      }
+    } else if (first){
+      for (var c in codes) stockMap[c] = {signals:[sig], close: codes[c]};
       first = false;
     } else {
       var newMap = {};
       for (var c in stockMap){
         if (codes[c] !== undefined){
-          var entry = stockMap[c];
-          entry.signals.push(sig);
-          entry.close = Math.min(entry.close, codes[c]); // keep min close across signals
-          newMap[c] = entry;
+          stockMap[c].signals.push(sig);
+          newMap[c] = stockMap[c];
         }
       }
       stockMap = newMap;
