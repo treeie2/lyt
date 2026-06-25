@@ -35,11 +35,11 @@ tr:hover{background:var(--h)}
 <div class="ctrl"><input type="date" id="dp" onchange="render()"><button class="btn" onclick="render()">Go</button></div></div>
 <div class="sp" id="sp"></div>
 <div class="gp" id="gp" style="max-height:42px;overflow-y:hidden;position:relative"></div><div style="text-align:right;margin-bottom:8px"><span class="tag" id="gptoggle" style="cursor:pointer;font-size:10px" onclick="var g=document.getElementById('gp');g.style.maxHeight=g.style.maxHeight=='42px'?'200px':'42px';this.textContent=this.textContent=='展开'?'收起':'展开'">展开</span></div>
-<div class="tw"><table><thead><tr><th>Code</th><th>Name</th><th>Close</th><th>五维</th><th>Signals</th><th>分组</th><th>K</th></tr></thead><tbody id="tb"></tbody></table></div>
+<div class="tw"><table><thead><tr><th>Code</th><th>Name</th><th>涨幅</th><th>五维</th><th>Signals</th><th>分组</th><th>K</th></tr></thead><tbody id="tb"></tbody></table></div>
 <script>
 var S=['启动','抢筹','突破','爆发','转强','起涨','主升','加速','强攻'];
 var C=['#ff9800','#e91e63','#2196f3','#f44336','#4caf50','#9c27b0','#ffd700','#00ffff','#ff0077'];
-var D=null, FD=null, GR=null, AS={}, AG={};
+var D=null, FD=null, GR=null, CH=null, AS={}, AG={};
 S.forEach(function(s){AS[s]=false;});
 
 // Score color
@@ -49,9 +49,10 @@ function scolor(s){if(s>=70)return's70';if(s>=50)return's50';if(s>=30)return's30
   Promise.all([
     fetch('daily_signals.json').then(function(r){return r.json();}),
     fetch('five_dim_scores.json').then(function(r){return r.json();}).catch(function(){return{};}),
-    fetch('stock_groups.json').then(function(r){return r.json();}).catch(function(){return{};})
+    fetch('stock_groups.json').then(function(r){return r.json();}).catch(function(){return{};}),
+    fetch('changes.json').then(function(r){return r.json();}).catch(function(){return{};})
   ]).then(function(results){
-    D=results[0]; FD=results[1]||{}; GR=results[2]||{};
+    D=results[0]; FD=results[1]||{}; GR=results[2]||{}; CH=results[3]||{};
     document.getElementById('dp').value=D.dates[D.dates.length-1];
     document.getElementById('dp').min=D.dates[0];
     document.getElementById('dp').max=D.dates[D.dates.length-1];
@@ -136,7 +137,15 @@ function render(){
       }
     });
     
-    rows+='<tr><td class="pl">'+c+'</td><td>'+nm+'</td><td>'+e.cl.toFixed(2)+'</td>'
+    // Get change percentage
+    var chg=CH[dt]?CH[dt][c]:null;
+    var chgStr='-', chgCls='';
+    if(chg!==null&&chg!==undefined){
+      chgStr=(chg>=0?'+':'')+chg.toFixed(2)+'%';
+      chgCls=chg>=0?'up':'down';
+    }
+    
+    rows+='<tr><td class="pl">'+c+'</td><td>'+nm+'</td><td class="'+chgCls+'">'+chgStr+'</td>'
       +'<td class="scr '+scrCls+'">'+(typeof scr==='number'?scr.toFixed(1):scr)+'</td>'
       +'<td>'+tags+'</td><td>'+gtags+'</td>'
       +'<td><a class="kl" href="chart.html?code='+c+'" target="_blank">K</a></td></tr>';
