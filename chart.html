@@ -30,7 +30,7 @@ var prefix = code[0]=='6' ? 'sh' : 'sz';
 document.getElementById('title').textContent = code;
 
 // Fetch from Tencent
-fetch('http://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param='+prefix+code+',day,,,500,qfq')
+fetch('https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param='+prefix+code+',day,,,500,qfq')
 .then(function(r){return r.json();})
 .then(function(data){
   var klines = data.data[prefix+code].qfqday || data.data[prefix+code].day || [];
