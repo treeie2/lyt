@@ -74,7 +74,7 @@ document.getElementById('filterInfo').textContent = 'Click signals to filter';
 
 async function refresh(){
   try{
-    var resp=await fetch('https://raw.githubusercontent.com/treeie2/lyt/main/daily_signals.json');
+    var resp=await fetch('daily_signals.json');
     if(!resp.ok) throw new Error('HTTP '+resp.status);
     DATA=await resp.json();
     if(!DATA.dates||DATA.dates.length===0) throw new Error('Empty');
