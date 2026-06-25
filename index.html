@@ -77,12 +77,11 @@ SIGS.forEach(function(s){ activeSigs[s] = true; });
 
 async function refresh(){
   try{
-    var resp=await fetch('daily_signals.json.gz');
+    // Load from GitHub raw (bypasses Pages size limits)
+    var resp=await fetch('https://raw.githubusercontent.com/treeie2/lyt/main/daily_signals.json.gz');
     if(!resp.ok) throw new Error('HTTP '+resp.status);
-    // Browser native decompress
     var ds=new DecompressionStream('gzip');
-    var stream=resp.body.pipeThrough(ds);
-    var text=await new Response(stream).text();
+    var text=await new Response(resp.body.pipeThrough(ds)).text();
     DATA=JSON.parse(text);
   }catch(e){
     document.getElementById('tbl').innerHTML='<tr><td colspan=3 style=\"color:var(--down);padding:40px\">Failed to load: '+e.message+'</td></tr>';
