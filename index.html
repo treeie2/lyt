@@ -145,7 +145,7 @@ function render(){
       chgCls=chg>=0?'up':'down';
     }
     
-    rows+='<tr><td class="pl">'+c+'</td><td>'+nm+'</td><td class="'+chgCls+'">'+chgStr+'</td>'
+    rows+='<tr><td class="pl"><a href="https://stockj.vercel.app/stock/'+c+'" target="_blank" style="color:var(--c);text-decoration:none">'+c+'</a></td><td>'+nm+'</td><td class="'+chgCls+'">'+chgStr+'</td>'
       +'<td class="scr '+scrCls+'">'+(typeof scr==='number'?scr.toFixed(1):scr)+'</td>'
       +'<td>'+tags+'</td><td>'+gtags+'</td>'
       +'<td><a class="kl" href="chart.html?code='+c+'" target="_blank">K</a></td></tr>';
