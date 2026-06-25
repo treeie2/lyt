@@ -58,7 +58,7 @@ tr:hover{background:var(--hover)}
 <div class="sort-bar">
   Click signals above to filter &mdash; only stocks matching ALL selected signals shown
 </div>
-<div class="table-wrap"><table><thead><tr><th>Code</th><th>Name</th><th onclick="sortBy=0;render()">Close</th><th>Signals</th></tr></thead><tbody id="tbl"></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th>Code</th><th>Name</th><th onclick="sortBy=0;render()">Close</th><th>Signals</th><th>K</th></tr></thead><tbody id="tbl"></tbody></table></div>
 
 <script>
 var SIGS=['启动','抢筹','突破','爆发','转强','起涨','主升','加速','强攻'];
@@ -163,9 +163,9 @@ function render(){
       + '<td><span class="code-link">' + c + '</span></td>'
       + '<td>' + (DATA.names[c]||'') + '</td>'
       + '<td>' + e.close.toFixed(2) + '</td>'
-      + '<td>' + tags + '</td></tr>';
+      + '<td>' + tags + '</td>' + '<td><a class="chart-link" href="chart_'+c+'.html" target="_blank">K</a></td></tr>';
   });
-  document.getElementById('tbl').innerHTML = rows || '<tr><td colspan=4 style="text-align:center;color:var(--text2);padding:40px">No stocks match all selected signals</td></tr>';
+  document.getElementById('tbl').innerHTML = rows || '<tr><td colspan=5 style="text-align:center;color:var(--text2);padding:40px">No stocks match all selected signals</td></tr>';
 }
 
 function toggleSig(sig){
