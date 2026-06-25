@@ -77,21 +77,18 @@ SIGS.forEach(function(s){ activeSigs[s] = true; });
 
 async function refresh(){
   try{
-    // Load from GitHub raw (bypasses Pages size limits)
-    var resp=await fetch('https://raw.githubusercontent.com/treeie2/lyt/main/daily_signals.json.gz');
+    var resp=await fetch('https://raw.githubusercontent.com/treeie2/lyt/main/daily_signals.json');
     if(!resp.ok) throw new Error('HTTP '+resp.status);
-    var ds=new DecompressionStream('gzip');
-    var text=await new Response(resp.body.pipeThrough(ds)).text();
-    DATA=JSON.parse(text);
+    DATA=await resp.json();
+    if(!DATA.dates||DATA.dates.length===0) throw new Error('Empty');
+    document.getElementById('dp').min=DATA.dates[0];
+    document.getElementById('dp').max=DATA.dates[DATA.dates.length-1];
+    document.getElementById('dp').value=DATA.dates[DATA.dates.length-1];
+    render();
   }catch(e){
-    document.getElementById('tbl').innerHTML='<tr><td colspan=3 style=\"color:var(--down);padding:40px\">Failed to load: '+e.message+'</td></tr>';
-    return;
+    document.getElementById('totalInfo').textContent='Error: '+e.message;
+    console.error(e);
   }
-  if(!DATA.dates||DATA.dates.length===0) return;
-  document.getElementById('dp').min=DATA.dates[0];
-  document.getElementById('dp').max=DATA.dates[DATA.dates.length-1];
-  document.getElementById('dp').value=DATA.dates[DATA.dates.length-1];
-  render();
 }
 
 function render(){
