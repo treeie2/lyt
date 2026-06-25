@@ -77,11 +77,15 @@ SIGS.forEach(function(s){ activeSigs[s] = true; });
 
 async function refresh(){
   try{
-    var resp=await fetch('daily_signals.json');
+    var resp=await fetch('daily_signals.json.gz');
     if(!resp.ok) throw new Error('HTTP '+resp.status);
-    DATA=await resp.json();
+    // Browser native decompress
+    var ds=new DecompressionStream('gzip');
+    var stream=resp.body.pipeThrough(ds);
+    var text=await new Response(stream).text();
+    DATA=JSON.parse(text);
   }catch(e){
-    document.getElementById('tbl').innerHTML='<tr><td colspan=3 style=\"color:var(--down);padding:40px\">Failed to load data: '+e.message+'<br><br>Run: cd treeie_stock &amp;&amp; python deploy_data.py</td></tr>';
+    document.getElementById('tbl').innerHTML='<tr><td colspan=3 style=\"color:var(--down);padding:40px\">Failed to load: '+e.message+'</td></tr>';
     return;
   }
   if(!DATA.dates||DATA.dates.length===0) return;
