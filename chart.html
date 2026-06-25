@@ -14,46 +14,45 @@ body{background:#00041a;color:#a0c4ff;font-family:'Microsoft YaHei'}
 .tb a:hover{background:#00ffff;color:#00041a}
 #chart{width:100%;height:calc(100vh - 44px)}
 .ld{text-align:center;padding:60px;font-size:14px;color:#a0c4ff}
-.err{color:#ff0077}
 </style>
 </head>
 <body>
-<div class="tb"><h2 id="title">--</h2><span id="info" style="font-size:12px"></span><a href="../">Back</a></div>
-<div id="chart"><div class="ld">Loading...</div></div>
+<div class="tb"><h2 id="title">--</h2><span id="info" style="font-size:12px"></span><a href="..">Back</a></div>
+<div id="chart"><div class="ld">Loading K-line...</div></div>
 <script>
 (function(){
   var code = new URLSearchParams(window.location.search).get('code') || '600519';
-  var prefix = code[0]=='6' ? 'sh' : 'sz';
   document.getElementById('title').textContent = code;
 
-  var url = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param='+prefix+code+',day,,,500,qfq';
+  // EastMoney: secid format 1.600519 (SH) or 0.002452 (SZ)
+  var secid = (code[0]=='6'?'1.':'0.') + code;
+  var url = 'https://push2his.eastmoney.com/api/qt/stock/kline/get?secid='+secid+'&fields1=f1,f2,f3,f4,f5,f6&fields2=f51,f52,f53,f54,f55,f56&klt=101&fqt=1&end=20500101&lmt=500';
 
   var xhr = new XMLHttpRequest();
   xhr.open('GET', url, true);
+  xhr.timeout = 8000;
   xhr.onload = function(){
     if (xhr.status !== 200){
-      document.getElementById('chart').innerHTML = '<div class="ld err">HTTP '+xhr.status+'</div>';
+      document.getElementById('chart').innerHTML = '<div class="ld">HTTP '+xhr.status+'</div>';
       return;
     }
     try {
-      var data = JSON.parse(xhr.responseText);
-      var stockData = data.data[prefix+code];
-      if (!stockData) throw new Error('No data for '+code);
-      var klines = stockData.qfqday || stockData.day || [];
-      if (klines.length === 0) throw new Error('Empty data');
+      var json = JSON.parse(xhr.responseText);
+      var klines = json.data.klines || [];
+      if (klines.length === 0) throw new Error('No data');
 
       var dates=[], o=[], c=[], h=[], l=[], v=[];
       for (var i=0; i<klines.length; i++){
-        var k = klines[i];
-        dates.push(k[0]);
-        o.push(parseFloat(k[1]));
-        c.push(parseFloat(k[2]));
-        h.push(parseFloat(k[3]));
-        l.push(parseFloat(k[4]));
-        v.push(parseFloat(k[5]));
+        var parts = klines[i].split(',');
+        dates.push(parts[0]);
+        o.push(parseFloat(parts[1]));
+        c.push(parseFloat(parts[2]));
+        h.push(parseFloat(parts[3]));
+        l.push(parseFloat(parts[4]));
+        v.push(parseFloat(parts[5]));
       }
       var n = dates.length;
-      document.getElementById('info').textContent = n+'d  O:'+o[0].toFixed(1)+' C:'+c[n-1].toFixed(2);
+      document.getElementById('info').textContent = n+'d  C:'+c[n-1].toFixed(2);
 
       document.getElementById('chart').innerHTML = '';
       var chart = echarts.init(document.getElementById('chart'), 'dark');
@@ -61,7 +60,7 @@ body{background:#00041a;color:#a0c4ff;font-family:'Microsoft YaHei'}
       function sma(arr, p){
         var out = [];
         for (var i=0; i<n; i++){
-          if (i < p-1){ out.push(null); continue; }
+          if (i<p-1){ out.push(null); continue; }
           var s = 0;
           for (var j=0; j<p; j++) s += arr[i-j];
           out.push(+(s/p).toFixed(2));
@@ -69,57 +68,54 @@ body{background:#00041a;color:#a0c4ff;font-family:'Microsoft YaHei'}
         return out;
       }
 
-      var up = '#00ff88', down = '#ff0077';
+      var up='#00ff88', down='#ff0077';
       var kld = [];
       for (var i=0; i<n; i++) kld.push([o[i], c[i], l[i], h[i]]);
 
       var series = [{
-        type: 'candlestick', name: 'K', data: kld,
-        itemStyle: {color: up, color0: down, borderColor: up, borderColor0: down},
-        xAxisIndex: 0, yAxisIndex: 0
+        type:'candlestick', name:'K', data:kld,
+        itemStyle:{color:up, color0:down, borderColor:up, borderColor0:down},
+        xAxisIndex:0, yAxisIndex:0
       }];
 
-      var maCf = [{p:5,c:'#ff9800'},{p:10,c:'#4fc3f7'},{p:20,c:'#e040fb'},{p:40,c:'#66bb6a'},{p:60,c:'#ef5350'}];
-      for (var mi=0; mi<maCf.length; mi++){
-        var m = maCf[mi];
-        series.push({
-          type: 'line', name: 'MA'+m.p, data: sma(c, m.p),
-          lineStyle: {color: m.c, width: m.p>=40?2:1}, symbol: 'none',
-          xAxisIndex: 0, yAxisIndex: 0
-        });
-      }
+      [{p:5,c:'#ff9800'},{p:10,c:'#4fc3f7'},{p:20,c:'#e040fb'},{p:40,c:'#66bb6a'},{p:60,c:'#ef5350'}].forEach(function(m){
+        series.push({type:'line', name:'MA'+m.p, data:sma(c,m.p),
+          lineStyle:{color:m.c, width:m.p>=40?2:1}, symbol:'none',
+          xAxisIndex:0, yAxisIndex:0});
+      });
 
       var vd = [];
       for (var i=0; i<n; i++){
-        vd.push({value: [dates[i], v[i]],
-          itemStyle: {color: (i>0 && c[i]>=c[i-1] ? 'rgba(0,255,136,0.5)' : 'rgba(255,0,119,0.5)')}});
+        vd.push({value:[dates[i],v[i]], itemStyle:{color:(i>0&&c[i]>=c[i-1]?'rgba(0,255,136,.5)':'rgba(255,0,119,.5)')}});
       }
-      series.push({type: 'bar', name: 'Vol', data: vd, xAxisIndex: 1, yAxisIndex: 1});
+      series.push({type:'bar', name:'Vol', data:vd, xAxisIndex:1, yAxisIndex:1});
 
       chart.setOption({
-        backgroundColor: '#00041a',
-        tooltip: {trigger: 'axis', axisPointer: {type: 'cross'}, backgroundColor: 'rgba(0,12,42,0.95)', borderColor: 'rgba(0,255,255,.3)'},
-        dataZoom: [{type: 'slider', xAxisIndex: [0,1], start: 70, end: 100, height: 20, bottom: 0,
-          borderColor: 'rgba(0,255,255,.2)', backgroundColor: '#000c2a', handleStyle: {color: '#00ffff'}}],
-        grid: [{left: 60, right: 60, top: 10, bottom: '40%'}, {left: 60, right: 60, top: '64%', bottom: 40}],
-        xAxis: [
-          {type: 'category', data: dates, axisLine: {lineStyle: {color: 'rgba(0,255,255,.3)'}}, axisTick: {show: false}, axisLabel: {color: '#a0c4ff'}, gridIndex: 0},
-          {type: 'category', data: dates, axisLine: {lineStyle: {color: 'rgba(0,255,255,.3)'}}, axisTick: {show: false}, axisLabel: {show: false}, gridIndex: 1}
+        backgroundColor:'#00041a',
+        tooltip:{trigger:'axis', axisPointer:{type:'cross'}, backgroundColor:'rgba(0,12,42,.95)', borderColor:'rgba(0,255,255,.3)'},
+        dataZoom:[{type:'slider', xAxisIndex:[0,1], start:70, end:100, height:20, bottom:0,
+          borderColor:'rgba(0,255,255,.2)', backgroundColor:'#000c2a', handleStyle:{color:'#00ffff'}}],
+        grid:[{left:60, right:60, top:10, bottom:'40%'}, {left:60, right:60, top:'64%', bottom:40}],
+        xAxis:[
+          {type:'category', data:dates, axisLine:{lineStyle:{color:'rgba(0,255,255,.3)'}}, axisTick:{show:false}, axisLabel:{color:'#a0c4ff'}, gridIndex:0},
+          {type:'category', data:dates, axisLine:{lineStyle:{color:'rgba(0,255,255,.3)'}}, axisTick:{show:false}, axisLabel:{show:false}, gridIndex:1}
         ],
-        yAxis: [
-          {type: 'value', scale: true, position: 'right', gridIndex: 0, axisLabel: {color: '#a0c4ff'}, splitLine: {lineStyle: {color: 'rgba(0,255,255,.1)'}}},
-          {type: 'value', position: 'right', gridIndex: 1, axisLabel: {color: '#a0c4ff', formatter: function(v){return v>=1e8 ? (v/1e8).toFixed(1)+'E' : (v/1e4).toFixed(0)+'W'}}, splitLine: {show: false}}
+        yAxis:[
+          {type:'value', scale:true, position:'right', gridIndex:0, axisLabel:{color:'#a0c4ff'}, splitLine:{lineStyle:{color:'rgba(0,255,255,.1)'}}},
+          {type:'value', position:'right', gridIndex:1, axisLabel:{color:'#a0c4ff', formatter:function(v){return v>=1e8?(v/1e8).toFixed(1)+'E':(v/1e4).toFixed(0)+'W'}}, splitLine:{show:false}}
         ],
-        series: series
+        series:series
       });
       window.onresize = function(){ chart.resize(); };
-
     } catch(e){
-      document.getElementById('chart').innerHTML = '<div class="ld err">Error: '+e.message+'</div>';
+      document.getElementById('chart').innerHTML = '<div class="ld">'+e.message+'</div>';
     }
   };
+  xhr.ontimeout = function(){
+    document.getElementById('chart').innerHTML = '<div class="ld">Timeout</div>';
+  };
   xhr.onerror = function(){
-    document.getElementById('chart').innerHTML = '<div class="ld err">Network error (may need direct connection)</div>';
+    document.getElementById('chart').innerHTML = '<div class="ld">API blocked</div>';
   };
   xhr.send();
 })();
