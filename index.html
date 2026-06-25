@@ -6,9 +6,27 @@ table{width:100%;border-collapse:collapse;background:#1a1a1a;border-radius:8px;o
 th{background:#222;padding:10px 12px;text-align:left;color:#aaa;border-bottom:1px solid #333;position:sticky;top:0}
 td{padding:8px 12px;border-bottom:1px solid #222;vertical-align:top}
 tr:hover{background:#2a2a2a} a{color:#4fc3f7;text-decoration:none}a:hover{text-decoration:underline}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;padding:12px;background:#1a1a1a;border-radius:8px}
+.lg{font-size:12px;padding:4px 10px;border-radius:4px;font-weight:600}
+.l-qd{border:1px solid #ff9800;color:#ff9800}
+.l-qc{border:1px solid #e91e63;color:#e91e63}
+.l-tp{border:1px solid #2196f3;color:#2196f3}
+.l-bf{border:1px solid #f44336;color:#f44336}
+.l-zq{border:1px solid #4caf50;color:#4caf50}
+.l-qz{border:1px solid #9c27b0;color:#9c27b0}
+.l-zs{border:1px solid #ffd700;color:#ffd700}
 </style></head><body>
 <h1>Stock Screener - Signal Dates</h1>
 <p class="sub">12 stocks | Score >= 50 | 2026-06-25 17:46</p>
+<div class="legend">
+  <span class="lg l-qd">启动(量托)</span>
+  <span class="lg l-qc">抢筹(多方炮)</span>
+  <span class="lg l-tp">突破(出水芙蓉)</span>
+  <span class="lg l-bf">爆发(放量突破)</span>
+  <span class="lg l-zq">转强(月价托)</span>
+  <span class="lg l-qz">起涨(中线底托)</span>
+  <span class="lg l-zs">主升(金蜘蛛)</span>
+</div>
 <table><thead><tr>
   <th>Code</th><th>Name</th><th>Close</th><th>Mo%</th><th>Score</th><th>Signal Dates</th><th>Chart</th>
 </tr></thead><tbody>
