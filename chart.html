@@ -8,7 +8,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#00041a;color:#a0c4ff;font-family:'Microsoft YaHei'}
-.tb{padding:8px 14px;background:#000c2a;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(0,255,255,.3);flex-wrap:wrap}
+.tb{padding:8px 14px;background:#000c2a;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(0,255,255,.3)}
 .tb h2{color:#00ffff;font-size:16px}
 .tb a{color:#00ffff;text-decoration:none;font-size:13px;padding:4px 12px;border:1px solid #00ffff;border-radius:4px}
 .tb a:hover{background:#00ffff;color:#00041a}
@@ -17,194 +17,109 @@ body{background:#00041a;color:#a0c4ff;font-family:'Microsoft YaHei'}
 </style>
 </head>
 <body>
-<div class="tb"><h2 id="title">--</h2><span id="info" style="font-size:12px"></span><a href="..">Back</a></div>
+<div class="tb"><h2 id="title">--</h2><span id="info" style="font-size:12px"></span><a href="./">Back</a></div>
 <div id="chart"><div class="ld">Loading K-line...</div></div>
 <script>
 (function(){
   var code = new URLSearchParams(window.location.search).get('code') || '600519';
   document.getElementById('title').textContent = code;
 
-  // Signal definitions
-  var S=['启动','抢筹','突破','爆发','转强','起涨','主升','加速','强攻'];
-  var SC=['#ff9800','#e91e63','#2196f3','#f44336','#4caf50','#9c27b0','#ffd700','#00ffff','#ff0077'];
+  // Tencent K-line API
+  var prefix = code[0]=='6' ? 'sh' : 'sz';
+  var url = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param='+prefix+code+',day,,,500,qfq';
 
-  // Load signals + K-line data
-  Promise.all([
-    fetch('daily_signals.json').then(function(r){return r.json();}).catch(function(){return null;}),
-    new Promise(function(resolve, reject){
-      var prefix = code[0]=='6' ? 'sh' : 'sz';
-      var url = 'https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param='+prefix+code+',day,,,500,qfq';
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', url, true);
-      xhr.timeout = 8000;
-      xhr.onload = function(){
-        if(xhr.status!==200){reject('HTTP '+xhr.status);return;}
-        try{
-          var json = JSON.parse(xhr.responseText);
-          var sd = json.data[prefix+code];
-          if(!sd) throw new Error('No data');
-          var klines = sd.qfqday || sd.day || [];
-          if(klines.length===0) throw new Error('Empty');
-          resolve(klines);
-        }catch(e){reject(e.message);}
-      };
-      xhr.ontimeout = function(){reject('Timeout');};
-      xhr.onerror = function(){reject('API blocked');};
-      xhr.send();
-    })
-  ]).then(function(results){
-    var sigData = results[0];
-    var klines = results[1];
-    renderChart(code, klines, sigData);
-  }).catch(function(err){
-    document.getElementById('chart').innerHTML = '<div class="ld">Error: '+err+'</div>';
-  });
-
-  function renderChart(code, klines, sigData){
-    var dates=[], o=[], c=[], h=[], l=[], v=[];
-    for(var i=0; i<klines.length; i++){
-      var k = klines[i];
-      dates.push(k[0]);
-      o.push(parseFloat(k[1]));
-      c.push(parseFloat(k[2]));
-      h.push(parseFloat(k[3]));
-      l.push(parseFloat(k[4]));
-      v.push(parseFloat(k[5]));
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', url, true);
+  xhr.timeout = 8000;
+  xhr.onload = function(){
+    if (xhr.status !== 200){
+      document.getElementById('chart').innerHTML = '<div class="ld">HTTP '+xhr.status+'</div>';
+      return;
     }
-    var n = dates.length;
-    var lastC = c[n-1];
-    document.getElementById('info').textContent = n+'d  C:'+lastC.toFixed(2);
+    try {
+      var json = JSON.parse(xhr.responseText);
+      var stockData = json.data[prefix+code];
+      if (!stockData) throw new Error('No data');
+      var klines = stockData.qfqday || stockData.day || [];
+      if (klines.length === 0) throw new Error('Empty');
 
-    // Build signal map: {date: [signalName, ...]}
-    var signalMap = {};
-    if(sigData && sigData.signals){
-      for(var date in sigData.signals){
-        var sigs = sigData.signals[date];
-        S.forEach(function(sname){
-          var list = sigs[sname] || [];
-          for(var j=0; j<list.length; j++){
-            if(list[j].code === code){
-              if(!signalMap[date]) signalMap[date] = [];
-              signalMap[date].push(sname);
-            }
-          }
-        });
+      var dates=[], o=[], c=[], h=[], l=[], v=[];
+      for (var i=0; i<klines.length; i++){
+        var k = klines[i];
+        dates.push(k[0]);
+        o.push(parseFloat(k[1]));
+        c.push(parseFloat(k[2]));
+        h.push(parseFloat(k[3]));
+        l.push(parseFloat(k[4]));
+        v.push(parseFloat(k[5]));
       }
-    }
+      var n = dates.length;
+      document.getElementById('info').textContent = n+'d  C:'+c[n-1].toFixed(2);
 
-    // Build markPoint data for signals
-    var markData = [];
-    for(var i=0; i<n; i++){
-      var date = dates[i];
-      if(signalMap[date]){
-        var sigs = signalMap[date];
-        // Pick the highest priority signal color
-        var maxIdx = -1;
-        sigs.forEach(function(s){
-          var idx = S.indexOf(s);
-          if(idx > maxIdx) maxIdx = idx;
-        });
-        var color = maxIdx>=0 ? SC[maxIdx] : '#00ffff';
-        // Use highest price for mark position (above candle)
-        var pos = h[i] + (lastC * 0.02);
-        markData.push({
-          name: sigs.join(','),
-          coord: [date, pos],
-          itemStyle: {color: color},
-          symbol: 'pin',
-          symbolSize: 28,
-          label: {
-            show: true,
-            formatter: sigs.length>1 ? sigs.length : sigs[0].charAt(0),
-            fontSize: 9,
-            color: '#000',
-            fontWeight: 'bold'
-          }
-        });
-      }
-    }
+      document.getElementById('chart').innerHTML = '';
+      var chart = echarts.init(document.getElementById('chart'), 'dark');
 
-    document.getElementById('chart').innerHTML = '';
-    var chart = echarts.init(document.getElementById('chart'), 'dark');
-
-    function sma(arr, p){
-      var out = [];
-      for(var i=0; i<n; i++){
-        if(i<p-1){out.push(null);continue;}
-        var s=0; for(var j=0; j<p; j++) s+=arr[i-j];
-        out.push(+(s/p).toFixed(2));
-      }
-      return out;
-    }
-
-    var up='#00ff88', down='#ff0077';
-    var kld = [];
-    for(var i=0; i<n; i++) kld.push([o[i], c[i], l[i], h[i]]);
-
-    var series = [{
-      type:'candlestick', name:'K', data:kld,
-      itemStyle:{color:up, color0:down, borderColor:up, borderColor0:down},
-      xAxisIndex:0, yAxisIndex:0,
-      markPoint: {
-        data: markData,
-        symbol: 'pin',
-        symbolSize: 28,
-        label: {fontSize:9, color:'#000', fontWeight:'bold'},
-        animation: false
-      }
-    }];
-
-    [{p:5,c:'#ff9800'},{p:10,c:'#4fc3f7'},{p:20,c:'#e040fb'},{p:40,c:'#66bb6a'},{p:60,c:'#ef5350'}].forEach(function(m){
-      series.push({type:'line', name:'MA'+m.p, data:sma(c,m.p),
-        lineStyle:{color:m.c, width:m.p>=40?2:1}, symbol:'none',
-        xAxisIndex:0, yAxisIndex:0});
-    });
-
-    var vd = [];
-    for(var i=0; i<n; i++){
-      vd.push({value:[dates[i],v[i]], itemStyle:{color:(i>0&&c[i]>=c[i-1]?'rgba(0,255,136,.5)':'rgba(255,0,119,.5)')}});
-    }
-    series.push({type:'bar', name:'Vol', data:vd, xAxisIndex:1, yAxisIndex:1});
-
-    chart.setOption({
-      backgroundColor:'#00041a',
-      tooltip:{
-        trigger:'axis', axisPointer:{type:'cross'},
-        backgroundColor:'rgba(0,12,42,.95)', borderColor:'rgba(0,255,255,.3)',
-        formatter: function(params){
-          var tip = '<div style="font-size:13px;font-weight:bold;color:#00ffff;margin-bottom:4px">'+params[0].axisValue+'</div>';
-          var sigs = signalMap[params[0].axisValue];
-          if(sigs){
-            tip += '<div style="margin-bottom:4px">';
-            sigs.forEach(function(s){
-              var idx = S.indexOf(s);
-              tip += '<span style="display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;margin:1px;font-weight:600;color:#000;background:'+SC[idx]+'">'+s+'</span> ';
-            });
-            tip += '</div>';
-          }
-          params.forEach(function(p){
-            if(p.seriesName!=='K' && p.seriesName!=='Vol'){
-              tip += '<div style="display:flex;justify-content:space-between;gap:20px"><span>'+p.marker+' '+p.seriesName+'</span><span>'+p.value+'</span></div>';
-            }
-          });
-          return tip;
+      function sma(arr, p){
+        var out = [];
+        for (var i=0; i<n; i++){
+          if (i<p-1){ out.push(null); continue; }
+          var s = 0;
+          for (var j=0; j<p; j++) s += arr[i-j];
+          out.push(+(s/p).toFixed(2));
         }
-      },
-      dataZoom:[{type:'slider', xAxisIndex:[0,1], start:60, end:100, height:20, bottom:0,
-        borderColor:'rgba(0,255,255,.2)', backgroundColor:'#000c2a', handleStyle:{color:'#00ffff'}}],
-      grid:[{left:60, right:60, top:10, bottom:'40%'}, {left:60, right:60, top:'64%', bottom:40}],
-      xAxis:[
-        {type:'category', data:dates, axisLine:{lineStyle:{color:'rgba(0,255,255,.3)'}}, axisTick:{show:false}, axisLabel:{color:'#a0c4ff'}, gridIndex:0},
-        {type:'category', data:dates, axisLine:{lineStyle:{color:'rgba(0,255,255,.3)'}}, axisTick:{show:false}, axisLabel:{show:false}, gridIndex:1}
-      ],
-      yAxis:[
-        {type:'value', scale:true, position:'right', gridIndex:0, axisLabel:{color:'#a0c4ff'}, splitLine:{lineStyle:{color:'rgba(0,255,255,.1)'}}},
-        {type:'value', position:'right', gridIndex:1, axisLabel:{color:'#a0c4ff', formatter:function(v){return v>=1e8?(v/1e8).toFixed(1)+'E':(v/1e4).toFixed(0)+'W'}}, splitLine:{show:false}}
-      ],
-      series:series
-    });
-    window.onresize = function(){ chart.resize(); };
-  }
+        return out;
+      }
+
+      var up='#00ff88', down='#ff0077';
+      var kld = [];
+      for (var i=0; i<n; i++) kld.push([o[i], c[i], l[i], h[i]]);
+
+      var series = [{
+        type:'candlestick', name:'K', data:kld,
+        itemStyle:{color:up, color0:down, borderColor:up, borderColor0:down},
+        xAxisIndex:0, yAxisIndex:0
+      }];
+
+      [{p:5,c:'#ff9800'},{p:10,c:'#4fc3f7'},{p:20,c:'#e040fb'},{p:40,c:'#66bb6a'},{p:60,c:'#ef5350'}].forEach(function(m){
+        series.push({type:'line', name:'MA'+m.p, data:sma(c,m.p),
+          lineStyle:{color:m.c, width:m.p>=40?2:1}, symbol:'none',
+          xAxisIndex:0, yAxisIndex:0});
+      });
+
+      var vd = [];
+      for (var i=0; i<n; i++){
+        vd.push({value:[dates[i],v[i]], itemStyle:{color:(i>0&&c[i]>=c[i-1]?'rgba(0,255,136,.5)':'rgba(255,0,119,.5)')}});
+      }
+      series.push({type:'bar', name:'Vol', data:vd, xAxisIndex:1, yAxisIndex:1});
+
+      chart.setOption({
+        backgroundColor:'#00041a',
+        tooltip:{trigger:'axis', axisPointer:{type:'cross'}, backgroundColor:'rgba(0,12,42,.95)', borderColor:'rgba(0,255,255,.3)'},
+        dataZoom:[{type:'slider', xAxisIndex:[0,1], start:70, end:100, height:20, bottom:0,
+          borderColor:'rgba(0,255,255,.2)', backgroundColor:'#000c2a', handleStyle:{color:'#00ffff'}}],
+        grid:[{left:60, right:60, top:10, bottom:'40%'}, {left:60, right:60, top:'64%', bottom:40}],
+        xAxis:[
+          {type:'category', data:dates, axisLine:{lineStyle:{color:'rgba(0,255,255,.3)'}}, axisTick:{show:false}, axisLabel:{color:'#a0c4ff'}, gridIndex:0},
+          {type:'category', data:dates, axisLine:{lineStyle:{color:'rgba(0,255,255,.3)'}}, axisTick:{show:false}, axisLabel:{show:false}, gridIndex:1}
+        ],
+        yAxis:[
+          {type:'value', scale:true, position:'right', gridIndex:0, axisLabel:{color:'#a0c4ff'}, splitLine:{lineStyle:{color:'rgba(0,255,255,.1)'}}},
+          {type:'value', position:'right', gridIndex:1, axisLabel:{color:'#a0c4ff', formatter:function(v){return v>=1e8?(v/1e8).toFixed(1)+'E':(v/1e4).toFixed(0)+'W'}}, splitLine:{show:false}}
+        ],
+        series:series
+      });
+      window.onresize = function(){ chart.resize(); };
+    } catch(e){
+      document.getElementById('chart').innerHTML = '<div class="ld">'+e.message+'</div>';
+    }
+  };
+  xhr.ontimeout = function(){
+    document.getElementById('chart').innerHTML = '<div class="ld">Timeout</div>';
+  };
+  xhr.onerror = function(){
+    document.getElementById('chart').innerHTML = '<div class="ld">API blocked</div>';
+  };
+  xhr.send();
 })();
 </script>
 </body>
